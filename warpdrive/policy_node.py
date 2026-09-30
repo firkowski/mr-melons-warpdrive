@@ -1,4 +1,4 @@
-"""Complete the callback, then run this file after sourcing ROS 2 Humble."""
+"""Complete the callback, then run `ros2 run melon_warpdrive controller` after sourcing ROS 2 Humble and the workspace."""
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile
