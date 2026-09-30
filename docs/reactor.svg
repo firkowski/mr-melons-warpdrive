@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="560" viewBox="0 0 1000 560">
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#354458" stroke-width="1.5"/></marker></defs>
+<rect width="1000" height="560" rx="20" fill="#f6f8fb"/>
+<g font-family="sans-serif" fill="#203047">
+<text x="42" y="48" font-size="26" font-weight="bold">Mr. Melon’s reactor stabiliser</text>
+<text x="42" y="77" font-size="16">Illustrative Furuta pendulum • frame and control-loop schematic</text>
+<rect x="92" y="279" width="142" height="53" rx="8" fill="#354458"/>
+<rect x="132" y="207" width="62" height="72" rx="9" fill="#687c91"/>
+<line x1="163" y1="205" x2="432" y2="205" stroke="#20a366" stroke-width="18" stroke-linecap="round"/>
+<line x1="432" y1="205" x2="432" y2="97" stroke="#e88521" stroke-width="14" stroke-linecap="round"/>
+<line x1="432" y1="211" x2="432" y2="327" stroke="#e88521" stroke-width="10" stroke-dasharray="8 8" opacity=".4"/>
+<circle cx="432" cy="205" r="9" fill="#203047"/>
+<circle cx="432" cy="150" r="6" fill="#203047"/>
+<path d="M480 316 C555 240 551 151 480 103" fill="none" stroke="#354458" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="163" y1="186" x2="163" y2="105" stroke="#354458" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="454" y1="205" x2="555" y2="205" stroke="#354458" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="163" y1="245" x2="431" y2="245" stroke="#7c8da2" stroke-width="1.5"/>
+<line x1="163" y1="237" x2="163" y2="253" stroke="#7c8da2"/><line x1="431" y1="237" x2="431" y2="253" stroke="#7c8da2"/>
+<text x="175" y="122" font-size="16">+z / motor axis</text>
+<text x="258" y="269" font-size="16">arm radius r</text>
+<text x="448" y="145" font-size="15">COM</text>
+<text x="454" y="185" font-size="15">+x / hinge axis</text>
+<text x="83" y="356" font-size="16">Fixed base and motor</text>
+<text x="341" y="365" font-size="16">Start: hanging down</text>
+<text x="621" y="129" font-size="19" font-weight="bold">Recover → swing up → balance</text>
+<text x="621" y="168" font-size="16">θ: arm rotation about +z</text>
+<text x="621" y="198" font-size="16">α: pendulum rotation about local +x</text>
+<text x="621" y="228" font-size="16">α = 0: upright • α = π: hanging down</text>
+<text x="621" y="275" font-size="16">The hinge is radial, along the arm.</text>
+<text x="621" y="302" font-size="16">The pendulum swings out of this view.</text>
+<rect x="42" y="414" width="224" height="82" rx="12" fill="#e2ecfa"/>
+<rect x="377" y="414" width="242" height="82" rx="12" fill="#dff3e9"/>
+<rect x="733" y="414" width="224" height="82" rx="12" fill="#fff0df"/>
+<text x="81" y="449" font-size="19" font-weight="bold">Student policy</text>
+<text x="65" y="477" font-size="15">Angles + velocities → action</text>
+<text x="410" y="449" font-size="19" font-weight="bold">Supplied simulator</text>
+<text x="401" y="477" font-size="15">Current → equations → state</text>
+<text x="809" y="449" font-size="19" font-weight="bold">RViz</text>
+<text x="765" y="477" font-size="15">URDF + joint transforms</text>
+<path d="M270 438 H371" fill="none" stroke="#354458" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="285" y="428" font-size="13">current [A]</text>
+<path d="M371 478 H271" fill="none" stroke="#354458" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="290" y="506" font-size="13">joint state</text>
+<path d="M624 453 H727" fill="none" stroke="#354458" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="639" y="438" font-size="13">joint state</text>
+<text x="42" y="539" font-size="13" fill="#607086">Schematic only; not a manufacturing drawing. The final CAD assembly and blueprints are to be supplied by the teaching team.</text>
+</g></svg>

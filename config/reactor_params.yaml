@@ -1,0 +1,18 @@
+# Complete the null values from CAD. SI units; see docs/DYNAMICS.md.
+arm_length: 0.250
+arm_inertia: 0.0129095
+pendulum_mass: null
+pendulum_com: null
+pendulum_ixx: null
+pendulum_iyy: null
+pendulum_izz: null
+arm_damping: 0.01
+pendulum_damping: 1.0e-03
+torque_constant: 2.0
+current_limit: 5.0
+gravity: 9.81
+control_dt: 0.01
+physics_substeps: 5
+episode_seconds: 10.0
+arm_speed_limit: 40.0
+pendulum_speed_limit: 80.0

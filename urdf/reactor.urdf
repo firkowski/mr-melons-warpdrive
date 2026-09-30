@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<robot name="melon_reactor">
+  <material name="titanium"><color rgba="0.8 0.8 0.8 1"/></material>
+
+  <link name="world"/>
+
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="package://melon_warpdrive/urdf/model/base.stl" scale="0.001 0.001 0.001"/></geometry>
+      <material name="titanium"/>
+    </visual>
+  </link>
+  <joint name="world_to_base" type="fixed"><parent link="world"/><child link="base_link"/></joint>
+
+  <link name="arm_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="package://melon_warpdrive/urdf/model/arm.stl" scale="0.001 0.001 0.001"/></geometry>
+      <material name="titanium"/>
+    </visual>
+  </link>
+  <joint name="arm_joint" type="continuous">
+    <parent link="base_link"/><child link="arm_link"/>
+    <origin xyz="0 0 0.305" rpy="0 0 0"/><axis xyz="0 0 1"/>
+  </joint>
+
+  <link name="pendulum_link">
+    <visual>
+      <!-- TODO: Specify the xyz translation of the pendulum's link (i.e. the pivot) wrt. to the center of the STL model -->
+      <origin xyz="0 0 0" rpy="0 0 0"/> 
+      <geometry><mesh filename="package://melon_warpdrive/urdf/model/pendulum.stl" scale="0.001 0.001 0.001"/></geometry>
+      <material name="titanium"/>
+    </visual>
+  </link>
+  
+  <joint name="pendulum_joint" type="continuous">
+    <parent link="arm_link"/><child link="pendulum_link"/>
+    <origin xyz="0.250 0 0.045" rpy="0 0 0"/><axis xyz="1 0 0"/>
+  </joint>
+</robot>
