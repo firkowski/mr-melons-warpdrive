@@ -16,25 +16,33 @@ class PolicyNode(Node):
         torch.set_num_threads(1)
 
         # TODO: Declare a node parameter 'model_file' that stores the path to the .zip policy saved in `runs/policy/`
-        # path = ...
+        path = None  # replace with your parameter
 
         # TODO: Declare a node parameter 'parameters_file' that stores the .yaml file with the system parameters
-        #       you obtained previously
-        # config = ...
-        # self.p = load_parameters(config)
+        #       (the reactor_params.yaml copy saved next to the policy in `runs/policy/`)
+        config = None  # replace with your parameter
+        if path is None or config is None:
+            raise NotImplementedError("Task 2.1: declare the 'model_file' and 'parameters_file' node parameters "
+                                      "in PolicyNode.__init__ (see the TODOs in warpdrive/policy_node.py)")
+        self.p = load_parameters(config)
 
         # Load the policy
         self.policy = SAC.load(path, device='cpu')
 
         # TODO: Create a servo current publisher that publishes a message of type Float64 to '/reactor/current_cmd'
-        #       What QoS would be the best for a controller? 
-        # self.publisher = ...
+        #       Hint: Use a RELIABLE QoS publisher with "QoSProfile(depth=1)"; the simulator subscribes with the same QoS
+        self.publisher = None  # replace with your publisher
         
         # TODO: Subscribe to the topic '/joint_states' with message type JointState and callback function self.on_state
+        #       Hint: use a QoS compatible with the simulator's publisher (it publishes with QoSProfile(depth=1))
+        self.subscription = None  # replace with your subscription
+
+        if self.publisher is None or self.subscription is None:
+            raise NotImplementedError("Task 2.1: create the '/reactor/current_cmd' publisher and the '/joint_states' "
+                                      "subscription in PolicyNode.__init__")
 
     # The callback function that runs anytime the node receives `joint_states` from the simulator node
     def on_state(self, msg):
-        pass
         # TODO: Convert the JointState message into the physical state [theta, alpha, theta_dot, alpha_dot].
         #       Look the joints up by name; do not assume the message order.
         #       Hint: use the state_from_joint_state() helper function
@@ -53,6 +61,9 @@ class PolicyNode(Node):
         # current = ...
 
         # TODO: Publish current value using the previously created publisher
+
+        # Remove this line once the TODOs above are done
+        raise NotImplementedError("Task 2.1: complete PolicyNode.on_state in warpdrive/policy_node.py")
 
 
 def main():

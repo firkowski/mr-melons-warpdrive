@@ -24,7 +24,7 @@ def main():
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     p = load_parameters(args.params)
-    save_parameters(p, out/'parameters.yaml')
+    save_parameters(p, out/'reactor_params.yaml')
     (out/'contract.json').write_text(json.dumps({
         'observation': OBSERVATION_CONTRACT, 'action': 'current/current_limit',
         'algorithm': 'SAC', 'seed': args.seed, 'requested_steps': args.steps,

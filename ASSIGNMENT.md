@@ -1,187 +1,338 @@
-# Mr. Melon’s Warpdrive
+# Mr. Melon's Warpdrive
 ## Rebuild the model, learn the controller, reconnect the reactor
 
-Mr. Melon is a famous and extremely wealthy spaceship builder. Unfortunately, a recent data
-crash has corrupted his company’s systems. Parts of the ship models, reactor controllers and
-communication software have disappeared. Before his next ship can leave the hangar, someone
-must reconstruct the missing components of its warpdrive. That someone is you.
+Real World Robotics · HS 2026 · Prof. Dr. Robert Katzschmann · TA: Max Firkowski
 
-The reactor’s stabiliser is a **Furuta pendulum**: a motor turns a horizontal arm, and a pendulum
-swings freely about a joint at the arm’s tip. To restart the reactor, the controller must swing
-the pendulum up from its resting position and keep it upright.
+Mr. Melon is a famous and extremely wealthy spaceship builder. A recent cyberattack has corrupted his company's systems: parts of the ship models, reactor controllers and communication software have disappeared. Before his next ship can leave the hangar, someone must reconstruct the missing components of its warpdrive. That someone is you.
 
-Your mission has three parts: rebuild the missing pendulum from its blueprint, teach a controller
-with reinforcement learning, and connect that controller to the ROS 2 simulator.
+All code for the assignment is in this repository, [github.com/firkowski/mr-melons-warpdrive](https://github.com/firkowski/mr-melons-warpdrive).
+
+- **Part 1 · CAD:** 25 points
+- **Part 2 · ROS 2:** 30 points
+- **Part 3 · RL:** 45 points
+
+The reactor's stabiliser is a **Furuta pendulum**: a motor turns a horizontal arm, and a pendulum swings freely about a joint at the arm's tip. To restart the reactor, the controller must swing the pendulum up from its resting position and keep it upright.
+
+In this assignment you combine three skills you will need throughout the course and in your project: you reconstruct a part in CAD and extract the physical properties a simulator needs, connect a controller to a simulated robot through ROS 2, and train that controller with reinforcement learning.
 
 ![Reactor schematic](docs/reactor.svg)
 
-## What you receive
+*Frames and angles (top) and the closed loop you will build (bottom): the policy receives joint states and commands a motor current, the simulator integrates the equations of motion, RViz shows the joint motion.*
 
-- A dimensioned drawing of the pendulum (`pendulum.pdf`) and its material: **titanium,
-  density 4500 kg/m³**.
-- The ROS 2 package `melon_warpdrive`, containing:
-  - the equations of motion, a numerical integrator and a Gymnasium environment (`warpdrive/`);
-  - a parameter file with the arm, motor and timing values already filled in
-    (`config/reactor_params.yaml`);
-  - a ready-made training script (`warpdrive/train.py`) and a common evaluation script
-    (`warpdrive/evaluate.py`), so everyone measures the same task;
-  - a ROS 2 simulator node, URDF with base and arm meshes, RViz configuration and launch file;
-  - skeletons for the parts you write: the reward (`warpdrive/task.py`) and the policy node
-    (`warpdrive/policy_node.py`).
-- `docs/DYNAMICS.md`: frame conventions, equations and CAD unit conversions.
+### The three parts
 
-Setup and all commands are in `README.md`. Use any CAD software that reports mass properties
-and exports STEP and STL. The simulator assumes ideal current control and freely rotating joints;
-there are no cable limits, collisions, gear backlash or electrical transients.
+1. **Recover the missing pendulum**: rebuild it in CAD from its blueprint and extract its mass properties.
+2. **Reconnect the reactor through ROS 2**: complete the node that runs a policy in the ROS 2 loop, and test it with a dummy policy.
+3. **Restore the reactor controller**: design a reward, train one policy for swing-up and balancing, evaluate it and demonstrate it in ROS 2.
 
-## 1. Recover the missing pendulum — 25 points
+The ROS 2 part comes before training on purpose: with a working node you can watch every policy you train in RViz, and problems in your node are not mistaken for problems in your policy.
 
-The reactor’s pendulum model is corrupted; only its blueprint survived. Rebuild the part from
-`pendulum.pdf`, assign the specified material and extract its mass properties.
+### What you edit
 
-### 1.1 CAD model and mass properties
+| File                         | What to do                                                                                                | Part |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------- | ---- |
+| `config/reactor_params.yaml` | Replace the `null` pendulum values with your CAD results                                                  | 1    |
+| `urdf/model/pendulum.stl`    | Your exported pendulum mesh, in mm                                                                        | 1    |
+| `urdf/reactor.urdf`          | Set the pendulum's visual `<origin>` (marked TODO)                                                        | 1    |
+| `warpdrive/policy_node.py`   | Complete the ROS 2 policy node (marked TODO)                                                              | 2    |
+| `warpdrive/task.py`          | Implement `reward()`. You are free to create helper functions in `warpdrive/task.py` or in separate files | 3    |
 
-Model the part in the drawing’s coordinate frame. The drawing’s X and Z axes are the
-pendulum-local axes used by the simulator:
+Everything else is supplied: the equations of motion, a Gymnasium environment, the training and evaluation scripts, the ROS 2 simulator, URDF, RViz configuration and launch file. Do not change the physics, the environment, the simulator or the evaluator.
 
-- local **x** is the hinge axis (it points radially along the arm);
-- local **z** points from the pivot towards the centre of mass when the pendulum is upright.
+## Setup
 
-The pendulum rotates about the centre of one of its end bores; that bore is the pivot. Enter these
-values into `config/reactor_params.yaml`, replacing the `null` entries:
+Follow `README.md` to install ROS 2 Humble with RoboStack (macOS, Windows or Ubuntu), build the
+workspace and set up each new terminal. The assignment website shows the same steps with commands
+for each system.
+
+## Part 1: Recover the missing pendulum (25 points)
+
+The reactor's pendulum model is corrupted; only its blueprint survived. Rebuild the part from the blueprint, assign the specified material, extract its mass properties for the simulator and add it to the visual robot model.
+
+We recommend [OnShape](https://www.onshape.com/en/), a CAD platform that runs in your browser and needs no installation. The TAs can only support OnShape and Fusion 360; other software that reports mass properties and exports STL is fine, but you will need to solve its issues yourself.
+
+The blueprint of the pendulum (dimensions in mm) is on the assignment website. Material: **titanium, 4500 kg/m³**.
+
+### Coordinate frame and mass properties
+
+Model the part in the drawing's coordinate frame. The drawing's X and Z axes are the pendulum-local axes used by the simulator:
+
+- local **x** is the hinge axis; it points radially along the arm;
+- local **z** points from the pivot towards the centre of mass (COM) when the pendulum is upright.
+
+The pendulum rotates about the centre of one of its end bores; that bore is the pivot.
+
+> **Task 1.1 - CAD model**
+>
+> 1. Create a new document called `Pendulum` and model the part from the drawing: sketch a profile, then add or remove material with extrusions. Keep the drawing's axes aligned with the CAD axes.
+> 2. Assign the material: titanium, 4500 kg/m³.
+
+> **Task 1.2 - Mass properties**
+>
+> 1. Open the mass properties of the part (OnShape: *Mass properties* tool in the Part Studio). Read the mass, the COM position and the inertia tensor **about the COM**, in the drawing's axes.
+> 2. Enter the values below into `config/reactor_params.yaml`, replacing the `null` entries. Keep all other values unchanged.
+> 3. Check that the file loads:
+>
+> ```
+> python -c "from warpdrive.model import load_parameters; print(load_parameters('config/reactor_params.yaml'))"
+> ```
+>
+> In the CAD software, take a screenshot of the mass properties showing material, mass, COM and the reference frame.
 
 | Quantity | YAML field | Units and reference |
 |---|---|---|
-| Pendulum mass | `pendulum_mass` | kg; complete rigid pendulum body |
+| Pendulum mass | `pendulum_mass` | kg; the complete rigid pendulum body |
 | Pendulum COM distance | `pendulum_com` | m; pivot to COM along local +z |
-| Pendulum COM inertia | `pendulum_ixx`, `pendulum_iyy`, `pendulum_izz` | kg·m²; about local axes **through the COM** |
+| Pendulum COM inertia | `pendulum_ixx`, `pendulum_iyy`, `pendulum_izz` | kg·m²; about the local axes **through the COM** |
 
-The arm values (`arm_length`, `arm_inertia`) are supplied. Keep all other values in the file
-unchanged; they describe the motor, damping and timing and cannot be obtained from CAD.
+> **Hint: Common mistakes**
+>
+> - The supplied equations already shift the pendulum inertia from its COM to the pivot. **Do not apply the parallel-axis shift yourself.**
+> - Check which physical axis each reported moment belongs to; do not copy principal moments without checking.
+> - Use SI units: g → kg and mm → m multiply by 10⁻³; kg·mm² → kg·m² multiplies by 10⁻⁶.
+> - The arm values (`arm_length`, `arm_inertia`) are supplied. Motor, damping and timing values cannot be obtained from CAD; do not change them.
 
-The supplied equations already shift the pendulum inertia from its COM to the pivot. **Do not
-apply the parallel-axis shift yourself.** Check which physical axis each CAD-reported moment
-belongs to; do not copy principal moments without checking. Convert all values to SI units
-(see `docs/DYNAMICS.md`).
+### Visual model
 
-### 1.2 Visual model
+The simulator only needs the numbers from Task 1.2. RViz, however, draws the robot from a URDF file, which describes its links, joints and meshes. The pendulum's mesh is missing. [For more about URDF, see the ROS documentation](https://docs.ros.org/en/humble/Tutorials/Intermediate/URDF/URDF-Main.html).
 
-Export the pendulum as STL **in millimetres** to `urdf/model/pendulum.stl`. In
-`urdf/reactor.urdf`, set the `<origin>` of the pendulum’s `<visual>` so that the link origin
-lies on the pivot and the pendulum points along +z at α = 0. Rebuild the workspace after adding
-the STL.
+> **Task 1.3 - Visual model**
+>
+> 1. Export the part as STL **in millimetres** to `urdf/model/pendulum.stl`.
+> 2. In `urdf/reactor.urdf`, set the `<origin>` of the pendulum's `<visual>` element so that the link origin lies on the pivot and the pendulum points along +z at α = 0.
+> 3. Rebuild the workspace (see `README.md`, "Build the workspace") so the new STL is installed, then start the simulator and RViz without a controller:
+>
+> ```
+> ros2 launch melon_warpdrive reactor.launch.py "parameters_file:=$PWD/config/reactor_params.yaml"
+> ```
+>
+> The launch file starts several nodes at once; see the [ROS 2 launch documentation](https://docs.ros.org/en/humble/Tutorials/Intermediate/Launch/Launch-Main.html) to learn how launch files work.
 
-**Checkpoint:** the parameter file loads without errors. With the simulator running and no
-controller, RViz shows the pendulum hanging from the tip of the arm and rotating about its pivot.
+> **Checkpoint**
+>
+> The parameter file loads without errors. With no controller running, RViz shows the pendulum hanging from the tip of the arm and rotating about its pivot.
 
-## 2. Restore the reactor controller — 45 points
+## Part 2: Reconnect the reactor through ROS 2 (30 points)
 
-The pendulum starts hanging down. A working controller must first pump energy into the system to
-swing it up, then slow it down and balance it upright. Implement this as **one learned policy**,
-trained with Soft Actor-Critic (SAC) from Stable-Baselines3.
+ROS 2 is a core framework in modern robotics. It lets perception, control, logging and user interfaces run as separate programs that communicate reliably with one another, and it scales from a laptop simulation to multi-sensor, multi-computer systems. Even if you are not new to ROS 2, work through the official beginner tutorials [CLI tools](https://docs.ros.org/en/humble/Tutorials/Beginner-CLI-Tools.html) and [Client libraries](https://docs.ros.org/en/humble/Tutorials/Beginner-Client-Libraries.html) (especially workspaces, packages and publishers/subscribers) before turning to an AI assistant. They are short, and they explain the structure and the common pitfalls. We work with Python, so follow the Python versions.
 
-The state is $x=[\theta,\alpha,\dot\theta,\dot\alpha]$, with $\alpha=0$ upright and
-$\alpha=\pi$ hanging down. Positive arm rotation is about +z; positive pendulum rotation is about
-the arm-local +x axis. The model has the form
+### ROS 2 in a nutshell
 
-$$
-M(q)\ddot q+h(q,\dot q)+g(q)+B\dot q=\begin{bmatrix}\tau\\0\end{bmatrix},
-\qquad \tau=K_\tau\,i .
-$$
+**Why publisher/subscriber?** Robots are made of parts that run at different rates and have distinct jobs: a camera node streaming detections at 30 Hz, a state estimator fusing an IMU at 200 Hz, a controller updating motors at 100 Hz. Each part publishes what it produces and subscribes to what it needs, so the parts stay loosely coupled behind clear interfaces and are easy to test, swap and extend. Here, the same policy node could drive the simulator or, in principle, a real motor driver publishing the same topics.
 
-The full expressions are in `docs/DYNAMICS.md`; deriving them is not required.
+| Concept                                                                                                                                                  | Meaning                                                                                                                                                                                                 |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Node](https://docs.ros.org/en/humble/Tutorials/Beginner-CLI-Tools/Understanding-ROS2-Nodes/Understanding-ROS2-Nodes.html)                               | One program with one job, such as the simulator or your policy.                                                                                                                                         |
+| [Topic](https://docs.ros.org/en/humble/Concepts/Basic/About-Topics.html), [message](https://docs.ros.org/en/humble/Concepts/Basic/About-Interfaces.html) | A named channel carrying messages of one type. Nodes publish to and subscribe from topics without knowing about each other.                                                                             |
+| [Service](https://docs.ros.org/en/humble/Concepts/Basic/About-Services.html)                                                                             | A request/response call; used here to reset the simulator.                                                                                                                                              |
+| [Parameter](https://docs.ros.org/en/humble/Concepts/Basic/About-Parameters.html)                                                                         | Configures a node at start-up without changing its code, such as the path to your policy.                                                                                                               |
+| [QoS](https://docs.ros.org/en/humble/Concepts/Intermediate/About-Quality-of-Service-Settings.html#overview)                                              | Quality-of-service settings: how messages are delivered, for example how many old messages are queued when a subscriber cannot keep up.                                                                 |
+| Package, workspace                                                                                                                                       | A package groups nodes, launch files and configuration. It lives in the `src/` folder of a workspace, which you build with `colcon build` and activate in every terminal by sourcing `install/setup.*`. |
+| `ros2 run`, `ros2 launch`                                                                                                                                | `ros2 run` starts one node; `ros2 launch` starts several nodes with their parameters from a launch file.                                                                                                |
 
-### Task interface
+Useful for debugging: `ros2 topic list`, `ros2 topic echo <topic>`, `ros2 topic hz <topic>`, `ros2 node info <node>` and `rqt_graph`, which draws all nodes and topics as a graph.
 
-- Observation: $[\sin\theta,\cos\theta,\sin\alpha,\cos\alpha,\dot\theta/10,\dot\alpha/10]$.
-- Action: one number $a\in[-1,1]$.
-- Commanded current: $i=a\,i_{\max}$ amperes, with $i_{\max}$ = `current_limit`.
-- Control interval: 0.01 s, with five RK4 physics substeps per action.
-- Episode: `episode_seconds` long, starting near the hanging-down position.
-- Swinging through the downward position does **not** end an episode.
-- Exceeding the arm or pendulum speed limit **terminates** the episode with a reward of −10.
-  Reaching the time limit **truncates** it.
+### The reactor's ROS graph
 
-“Balanced” means the pendulum is within 10° of upright, the arm turns slower than 2 rad/s and the
-pendulum slower than 1 rad/s. The function `upright(state)` in `warpdrive/task.py` implements this
-test.
-
-### 2.1 Design the reward
-
-Implement `reward(state, normalized_action)` in `warpdrive/task.py`. It is called after every step
-that did not end in a speed-limit failure, and must return a float. A good reward guides the agent
-through both phases: it should make progress towards upright worthwhile, reward slow, stable
-balancing and discourage unnecessary effort.
-
-Keep the size of your reward in mind. If the rewards collected over a full episode often add up to
-less than −10, ending the episode early by exceeding a speed limit becomes the agent’s best
-strategy.
-
-### 2.2 Train and evaluate
-
-1. Explain the observation, action and your reward in your own words.
-2. Train with the supplied script (SAC, two hidden layers of 64 units, 200,000 steps). Record the
-   seed. The script saves the policy, the exact parameter file used and a record of the settings in
-   `runs/policy/`.
-3. Evaluate the policy with `python -m warpdrive.evaluate`, using 20 episodes and the default
-   evaluation seeds. Evaluate the zero-current baseline as well.
-4. Plot the first evaluation episode: pendulum angle (wrapped around upright), both angular
-   velocities and current against time (`tools/plot_trace.py`).
-5. Make one deliberate change, for example a reward term, the training duration or a
-   hyperparameter. Retrain, re-evaluate and compare the measured outcome. A training run
-   finishing is not proof of success.
-
-**Success criterion:** during the final three seconds of an episode, the pendulum is balanced at
-every control sample. The target is success in at least 18 of 20 evaluation episodes. The time
-before that is available for swing-up and settling. Do not tune on the evaluation seeds.
-
-## 3. Reconnect the reactor through ROS 2 — 30 points
-
-The simulator and visualisation already work. Your task is to restore the missing policy node.
-Complete `warpdrive/policy_node.py` so that every incoming joint-state message produces a current
-command from your trained policy. Learning stays offline; the node only runs the trained policy.
+The launch file starts three nodes: the **simulator**, which integrates the equations of motion every 10 ms and publishes the joint states; **robot_state_publisher**, which turns joint states into the frames of the URDF; and **RViz**, which displays them. Your **policy node** closes the loop.
 
 | Interface | Type | Meaning |
 |---|---|---|
 | `/joint_states` | `sensor_msgs/msg/JointState` | `arm_joint`, `pendulum_joint`; position in rad, velocity in rad/s |
-| `/reactor/current_cmd` | `std_msgs/msg/Float64` | motor current in A, **not** the normalized action |
+| `/reactor/current_cmd` | `std_msgs/msg/Float64` | motor current in A, **not** the normalised action |
 | `/reactor/reset` | `std_srvs/srv/Trigger` | reset near the hanging-down position |
 
-Requirements:
+To display the current ROS graph, run the following in another terminal, set up as described in `README.md` ("Every new terminal"):
 
-- Declare the node parameters `model_file` and `parameters_file`, and load the policy and the
-  parameter file saved by your training run.
-- Choose a suitable QoS for the publisher and the subscription and justify it.
-- Look up the joints by name; do not rely on the order in the message.
-- Give the policy exactly the input it saw during training, and use deterministic inference.
-- Convert the action to amperes and publish it.
-- Publish zero current if a message is incomplete or contains non-finite values.
+```
+rqt_graph
+```
 
-The simulator holds the last command for at most 100 ms; after that it applies zero current.
+The graph shows only the nodes that are currently running. With the simulator, robot_state_publisher and RViz launched (Task 1.3), it should show the simulator, robot_state_publisher and RViz connected by `/joint_states` (an example is on the assignment website).
 
-Launch the simulator and RViz, then start your node with `ros2 run melon_warpdrive controller`.
-Use the same saved parameter file for both. Reset the reactor and observe swing-up followed by
-balancing. RViz only displays the joint motion; the physics come from the supplied equations, not
-from the URDF.
+The simulator holds the last command for at most 100 ms; after that it applies zero current. Learning stays offline: the policy node only runs a trained network.
 
-**Checkpoint:** demonstrate the loop in RViz, name the direction of each topic, and show that the
-published command is a current in amperes. Include a short screen recording or demonstrate live.
+> **Task 2.1 - Policy node**
+>
+> Complete `warpdrive/policy_node.py`, following its TODOs, so that every incoming joint-state message produces a current command. Your node must:
+>
+> 1. declare the node parameters `model_file` and `parameters_file`, and load the policy and the parameter file saved by a training run;
+> 2. create the publisher and the subscription with a suitable QoS (Hint: the QoS must match between the subscriber and publisher);
+> 3. look up the joints by name instead of relying on their order in the message;
+> 4. give the policy exactly the input it saw during training, and use deterministic inference (refer to [Stable Baselines3's SAC documentation](https://stable-baselines3.readthedocs.io/en/master/modules/sac.html) for details);
+> 5. convert the policy's action to amperes and publish it;
+> 6. publish zero current if a message is incomplete or contains non-finite values.
+>
+> The node is installed as the executable `controller`. 
+
+### Test the loop with a dummy policy
+
+You do not need a trained controller to test your node. The training script can save an untrained policy with the correct input and output sizes. It needs your completed parameter file from Part 1; the reward can still be the empty stub.
+
+> **Task 2.2 - Closed loop with a dummy policy**
+>
+> Create the dummy policy:
+>
+> ```
+> python -m warpdrive.train --steps 1 --out runs/dummy
+> ```
+>
+> Open three terminals, each set up as described in `README.md` ("Every new terminal").
+>
+> *Terminal 1 · simulator, robot_state_publisher, RViz*
+>
+> ```
+> ros2 launch melon_warpdrive reactor.launch.py "parameters_file:=$PWD/runs/dummy/reactor_params.yaml"
+> ```
+>
+> *Terminal 2 · your policy node*
+>
+> ```
+> ros2 run melon_warpdrive controller --ros-args -p "model_file:=$PWD/runs/dummy/policy.zip" -p "parameters_file:=$PWD/runs/dummy/reactor_params.yaml"
+> ```
+>
+> *Terminal 3 · reset and inspect*
+>
+> ```
+> ros2 service call /reactor/reset std_srvs/srv/Trigger "{}"
+> ros2 topic echo /reactor/current_cmd
+> ros2 topic hz /reactor/current_cmd
+> ```
+>
+> With all nodes running, take a screenshot of `rqt_graph` that clearly shows the nodes and their topics.
+>
+> An untrained policy only makes the pendulum twitch; the point is that the loop runs. Keep this setup: from now on you can watch every policy you train by pointing `model_file` at it.
+
+> **Checkpoint**
+>
+> Your node runs without errors, publishes a current in amperes within ±`current_limit` for every joint-state message (about 100 Hz), and publishes zero current for a malformed message. You can name the direction of each topic in the loop.
+
+## Part 3: Restore the reactor controller (45 points)
+
+The pendulum starts hanging down. A working controller must first pump energy into the system to swing it up, then slow it down and balance it upright. You implement this as **one learned policy**.
+
+### Reinforcement learning in a nutshell
+
+An **agent** repeatedly observes the state of an **environment**, chooses an **action** and receives a scalar **reward**. The steps from one reset to the end form an **episode**. The agent learns a **policy**, a mapping from observations to actions, that maximises the expected sum of discounted rewards. The reward is the only way you tell the agent what you want, and it learns whatever the reward pays for, including behaviour you did not intend.
+
+The environment is a Gymnasium environment (`warpdrive/env.py`) around the same equations of motion as the ROS 2 simulator. You train with Soft Actor-Critic (SAC) from Stable-Baselines3: an off-policy actor-critic algorithm for continuous actions that learns from a replay buffer of past experience and explores by rewarding randomness in its actions.
+
+### Model and task interface
+
+The state is x = [θ, α, θ̇, α̇], with α = 0 upright and α = π hanging down. Positive arm rotation is about +z; positive pendulum rotation is about the arm-local +x axis. With q = [θ, α], the model has the form below; the full expressions are in `docs/DYNAMICS.md`, and you do not need to derive them.
+
+`M(q)·q̈ + h(q, q̇) + g(q) + B·q̇ = [τ, 0]ᵀ,   τ = Kτ·i`
+
+|                  |                                                                                                              |
+| ---------------- | ------------------------------------------------------------------------------------------------------------ |
+| Observation      | [sin θ, cos θ, sin α, cos α, θ̇/10, α̇/10]                                                                   |
+| Action           | one number a ∈ [−1, 1]                                                                                       |
+| Current          | i = a · imax amperes, with imax = `current_limit`                                                            |
+| Control interval | 0.01 s, with five RK4 physics substeps per action                                                            |
+| Episode          | `episode_seconds` long, starting near the hanging-down position; swinging through the bottom does not end it |
+| Termination      | exceeding the arm or pendulum speed limit ends the episode with reward −10; the time limit truncates it      |
+| Balanced         | within 10° of upright, arm slower than 2 rad/s, pendulum slower than 1 rad/s (`upright(state)` in `task.py`) |
+
+> **Task 3.1 - Reward function**
+>
+> Implement `reward(state, normalized_action)` in `warpdrive/task.py`. It is called after every step that did not end in a speed-limit failure and must return a float. A good reward guides the agent through both phases: it makes progress towards upright worthwhile, rewards slow and stable balancing, and discourages unnecessary effort.
+
+> **Hint: Mind the scale of your reward**
+>
+> If the rewards collected over a full episode often add up to less than −10, ending the episode early by exceeding a speed limit becomes the agent's best strategy. In other words, the agent may learn to spin the pendulum as fast as possible to avoid incurring the negative reward.
+
+> **Task 3.2 - Training**
+>
+> Train with the supplied script (SAC, two hidden layers of 64 units, 200,000 steps by default) and record the seed:
+>
+> ```
+> python -m warpdrive.train --out runs/policy --seed 7
+> ```
+>
+> To change the number of steps, use the `--steps` option. For example, to stop training after 100,000 steps, run
+>
+> ```
+> python -m warpdrive.train --out runs/policy --seed 7 --steps 100000
+> ```
+>
+> Training takes about 10–20 minutes on a recent laptop (longer in a virtual machine). It writes to `runs/policy/`:
+>
+> | File | Content |
+> |---|---|
+> | `policy.zip` | policy at the end of training |
+> | `best_model.zip` | best policy found by the periodic evaluation during training |
+> | `reactor_params.yaml` | copy of the exact parameters used; use this copy for everything that follows |
+> | `contract.json` | observation and action definition, seed, step count |
+> | `evaluations.npz`, `training.monitor.csv` | learning curves |
+>
+> Watch the trained policy in RViz with your setup from Task 2.2, pointing `model_file` and `parameters_file` at `runs/policy/`. Use a new `--out` folder for every run you want to keep.
+
+> **Task 3.3 - Evaluation**
+>
+> Evaluate the policy on 20 episodes with the default evaluation seeds, and evaluate the zero-current baseline:
+>
+> ```
+> python -m warpdrive.evaluate --model runs/policy/best_model.zip --params runs/policy/reactor_params.yaml --out runs/policy/evaluation #trained policy evaluation
+> python -m warpdrive.evaluate --params runs/policy/reactor_params.yaml --out runs/zero_current #zero-current baseline evaluation
+> ```
+>
+> Each writes `metrics.json` and the first episode's `trajectory.csv`. Plot pendulum angle (wrapped around upright), both angular velocities and current against time, for the policy and the baseline:
+>
+> ```
+> python tools/plot_trace.py runs/policy/evaluation/trajectory.csv --out runs/policy/evaluation/trajectory.png
+> ```
+
+> **Checkpoint: Success criterion**
+>
+> An episode counts as a success if no speed limit was exceeded and the pendulum is balanced (`upright(state)`: within 10° of upright, arm slower than 2 rad/s, pendulum slower than 1 rad/s) at every control sample of the final three seconds. `warpdrive.evaluate` reports this for each episode and as `success_rate` in `metrics.json`. Your policy is successful if it succeeds in most evaluation episodes. This defines "successful" for Tasks 3.4 and 3.5; it is not a grading threshold.
+
+> **Task 3.4 - Demonstration in ROS 2**
+>
+> Run your final policy with your node from Part 2, using the `runs/policy/reactor_params.yaml` saved by its training run for both the simulator and the node. If the policy is successful (see the success criterion above), reset the reactor and record a video (at most 30 s, `.mp4`) of the swing-up followed by balancing in RViz, with `ros2 topic echo /reactor/current_cmd` visible in a terminal.
+
+> **Task 3.5 - Analyse the reward**
+>
+> Write a short reward analysis. What it must contain depends on whether your final policy is successful (see the success criterion above).
+>
+> **If your policy is successful:** explain how each element of your reward function was chosen to achieve the goal. For every term, say which behaviour it is meant to produce or prevent (for example swinging up, slowing down near the top, balancing, saving effort), why it has its weight or scale, and what changed when it was missing or set differently, if you tried that.
+>
+> **If your policy is not successful:** you can still receive full marks. Analyse **at least three reward designs** you trained (up to three are assessed; feel free to train more). For each design:
+>
+> - describe how the agent "gamed" the reward: which behaviour it learned that earns a high return without achieving the goal (for example spinning the pendulum through the top, hovering near upright without slowing down, or ending the episode early), and why your reward pays for that behaviour;
+> - explain the fix you applied in the next design and whether it worked.
+>
+> In both cases, support your analysis with data from training: the periodic evaluation in `runs/<run>/evaluations.npz` (keys `timesteps`, `results`, `ep_lengths`), the training log `training.monitor.csv`, your evaluation trajectories and what you saw in RViz. Useful questions:
+>
+> - What does the return curve represent? What range of values is possible with your reward, and why?
+> - How does its shape relate to what the agent learns, for example swing-up first and balancing later?
+> - Episodes only end early when a speed limit is exceeded. What does the episode length tell you, and how can you use it to monitor training?
 
 ## Submission
 
-Submit one archive containing:
+Upload one ZIP file named `assignment_[First name]_[Last name].zip` containing:
 
-1. The native CAD part, STEP and STL exports, a mass-property screenshot showing material, mass,
-   COM and the reference frame, your completed `config/reactor_params.yaml` and `urdf/reactor.urdf`.
-2. Your `warpdrive/task.py` and `warpdrive/policy_node.py`.
-3. The `runs/policy/` folder of your final run (policy, `parameters.yaml`, `contract.json`),
-   stating which checkpoint you deployed (`policy.zip` or `best_model.zip`), and your dependency
-   versions (`python -m pip freeze`).
-4. The evaluation outputs (`metrics.json`, `trajectory.csv`) of your policy and of the
-   zero-current baseline, your trajectory plots and the ROS recording.
-5. A report of at most three pages: CAD assumptions, reward design and RL choices, your training
-   comparison, measured success rate and an explanation of the ROS loop.
+1. **CAD:** the native CAD part or a view link to your OnShape document, STL export, the mass-property screenshot, your `config/reactor_params.yaml` and `urdf/reactor.urdf`.
+2. **Code:** your `warpdrive/task.py`, `warpdrive/policy_node.py`, and files with your helper functions, if applicable.
+3. **Policy:** the `runs/policy/` folder of your final run, which checkpoint you deployed (`policy.zip` or `best_model.zip`).
+4. **Evaluation:** `metrics.json` and `trajectory.csv` of your policy and of the zero-current baseline, and your plots.
+5. **ROS 2:** the `rqt_graph` screenshot and a link to your demonstration video. Make the link viewable by anyone with it, and test it in a private browser window.
+6. **Reward Analysis (.txt, .md, .pdf or .docx)**: Your answer to Task 3.5.
 
-Marking: CAD geometry and parameter extraction 25; reward, training, evaluation and explanation
-45; ROS integration and demonstration 30. A clear diagnosis of an unsuccessful policy earns method
-and analysis credit.
+| Part | Assessed | Points |
+|---|---|---|
+| 1 · Pendulum | CAD geometry and parameter extraction | 25 |
+| 2 · ROS 2 | policy node and closed-loop demonstration | 30 |
+| 3 · Controller | reward, training, evaluation and analysis | 45 |
+| **Total** |  | **100** |
+
+Deviations from the "real" dynamics resulting from mistakes in the CAD part do not influence the grading of the other two parts of the assignment, as long as the resulting physics is plausible. Large inaccuracies (e.g. wrong inertia units) may, however, make it impossible to control the pendulum under the servo current constraints. Both the simulator and the training script use your parameter file, so there is no gap between the physics you train on and the physics you deploy on.
+
+## Helpful notes
+
+- Activate `ros_env` and source the workspace in every new terminal (see `README.md`, "Every new terminal").
+- Use the same saved parameter file (the `reactor_params.yaml` copy in your `runs/...` folder) for evaluation, the simulator and the policy node.
+- Work incrementally: parameter file loads → pendulum looks right in RViz → your node publishes → it publishes the right values → train.
+
+See the troubleshooting table in `README.md` for common errors and their fixes.
+
+**Mindset.** Robotics is as much about integration as about algorithms. Expect small hurdles: a wrong path, forgetting to source, a unit off by a factor of 1000. Solving them is part of the skill you are building. Share quick questions and fixes with your classmates, and if you hit a wall after debugging, reach out to the TA. The goal is not only to make the pendulum stand up, but to build a small system you can understand, explain and change in minutes.
