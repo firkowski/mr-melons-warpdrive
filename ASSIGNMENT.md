@@ -15,7 +15,7 @@ The reactor's stabiliser is a **Furuta pendulum**: a motor turns a horizontal ar
 
 In this assignment you combine three skills you will need throughout the course and in your project: you reconstruct a part in CAD and extract the physical properties a simulator needs, connect a controller to a simulated robot through ROS 2, and train that controller with reinforcement learning.
 
-![Reactor schematic](docs/reactor.svg)
+![Reactor schematic](site/images/reactor.jpg)
 
 *Frames and angles (top) and the closed loop you will build (bottom): the policy receives joint states and commands a motor current, the simulator integrates the equations of motion, RViz shows the joint motion.*
 
@@ -51,7 +51,9 @@ The reactor's pendulum model is corrupted; only its blueprint survived. Rebuild 
 
 We recommend [OnShape](https://www.onshape.com/en/), a CAD platform that runs in your browser and needs no installation. The TAs can only support OnShape and Fusion 360; other software that reports mass properties and exports STL is fine, but you will need to solve its issues yourself.
 
-The blueprint of the pendulum (dimensions in mm) is on the assignment website. Material: **titanium, 4500 kg/m³**.
+![Pendulum blueprint](site/images/pendulum-drawing.png)
+
+*Blueprint of the pendulum, dimensions in mm (also in `docs/pendulum.pdf`). Material: **titanium, 4500 kg/m³**.*
 
 ### Coordinate frame and mass properties
 
@@ -148,7 +150,11 @@ To display the current ROS graph, run the following in another terminal, set up 
 rqt_graph
 ```
 
-The graph shows only the nodes that are currently running. With the simulator, robot_state_publisher and RViz launched (Task 1.3), it should show the simulator, robot_state_publisher and RViz connected by `/joint_states` (an example is on the assignment website).
+The graph shows only the nodes that are currently running. With the simulator, robot_state_publisher and RViz launched (Task 1.3), it should look similar to the one below. The right-most node is RViz's transform listener, which receives the frames RViz displays.
+
+![rqt_graph with the simulator, robot_state_publisher and RViz running](site/images/rqt_graph.png)
+
+*rqt_graph with the simulator, robot_state_publisher and RViz running.*
 
 The simulator holds the last command for at most 100 ms; after that it applies zero current. Learning stays offline: the policy node only runs a trained network.
 
@@ -202,6 +208,12 @@ You do not need a trained controller to test your node. The training script can 
 > With all nodes running, take a screenshot of `rqt_graph` that clearly shows the nodes and their topics.
 >
 > An untrained policy only makes the pendulum twitch; the point is that the loop runs. Keep this setup: from now on you can watch every policy you train by pointing `model_file` at it.
+
+With the launch file and your policy node running, `rqt_graph` should look similar to the one below. Compared with the graph from Task 1.3, your node `/warpdrive_policy` now subscribes to `/joint_states` and publishes `/reactor/current_cmd` back to the simulator, closing the loop.
+
+![rqt_graph with the simulator, robot_state_publisher, RViz and your policy node running](site/images/rqt_graph2.png)
+
+*rqt_graph with the simulator, robot_state_publisher, RViz and your policy node running.*
 
 > **Checkpoint**
 >
@@ -326,6 +338,23 @@ Upload one ZIP file named `assignment_[First name]_[Last name].zip` containing:
 | **Total** |  | **100** |
 
 Deviations from the "real" dynamics resulting from mistakes in the CAD part do not influence the grading of the other two parts of the assignment, as long as the resulting physics is plausible. Large inaccuracies (e.g. wrong inertia units) may, however, make it impossible to control the pendulum under the servo current constraints. Both the simulator and the training script use your parameter file, so there is no gap between the physics you train on and the physics you deploy on.
+
+## AI & TA policy
+
+*Ask about the system, not the solution*
+
+You may ask the TAs and AI tools anything that helps you **understand the system**: the concepts, the tools, the supplied code and the errors you run into. You may not ask them for **the solution**: answers that decide or produce what a task asks you to deliver.
+
+| Allowed: questions about the system | Not allowed: questions about the solution |
+|---|---|
+| "What is a ROS node?" | "What is a good reward function for this task?" |
+| "What is the difference between a state and an observation?" | "Write the code for this node." |
+| "Why do we normalize the policy input?" | "What should I put in the URDF, and where?" |
+| "Why is this error happening?" |  |
+
+> **Hint: Rule of thumb**
+>
+> If the answer explains how something works, ask. If the answer could go into your submission more or less as it is (code, a reward function, URDF content, parameter values), it is a solution: work it out yourself.
 
 ## Helpful notes
 

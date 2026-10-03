@@ -4,6 +4,9 @@ Read `ASSIGNMENT.md` first for the tasks and grading. This file covers setup and
 for each step. The assignment website shows the same steps with commands for macOS, Windows and
 Ubuntu side by side.
 
+Before asking a TA or an AI tool for help, read the AI & TA policy at the end of `ASSIGNMENT.md`:
+ask about the system, not the solution.
+
 The package lives in a colcon workspace:
 
 ```
