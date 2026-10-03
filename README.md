@@ -245,6 +245,7 @@ python tools/plot_trace.py runs/policy/evaluation/trajectory.csv --out runs/poli
 | `No parameters_file given` | The node or script was started without a parameter file. |
 | `FileNotFoundError: runs/policy/...` | Relative paths are resolved from the current folder. Run from the package folder and pass `$PWD/...` paths. |
 | `NotImplementedError: Task 2.1: ...` from the policy node | A TODO in `warpdrive/policy_node.py` is not finished yet; the message says which part. |
+| Policy node runs without errors, but `ros2 topic hz /reactor/current_cmd` shows nothing | The current message is built but never published. Check `PolicyNode.publish_current`. |
 | Simulator log: `Speed limit exceeded; paused` | The arm or pendulum spun too fast. Call `/reactor/reset`. |
 | Pendulum mesh missing in RViz | `pendulum.stl` was added after the last build. Rebuild and re-source. |
 | `colcon build`: `option --editable not recognized` | setuptools is too new for colcon: `python -m pip install "setuptools<80"`. |

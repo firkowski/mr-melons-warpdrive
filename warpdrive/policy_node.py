@@ -50,11 +50,11 @@ class PolicyNode(Node):
 
     def publish_current(self, value):
         """Publish one motor current command, in amperes."""
-        # TODO: Create a Float64 message whose data is the current `value` in amperes, as a Python float
+        # TODO: Create a Float64 message whose data is the current `value` in amperes, as a Python float,
+        #       and publish it with the publisher you created in __init__
         msg = None  # replace with your message
         if msg is None:
-            raise NotImplementedError("Task 2.1: build the Float64 message in PolicyNode.publish_current")
-        self.publisher.publish(msg)
+            raise NotImplementedError("Task 2.1: build and publish the Float64 message in PolicyNode.publish_current")
 
     # The callback function that runs anytime the node receives `joint_states` from the simulator node
     def on_state(self, msg):
