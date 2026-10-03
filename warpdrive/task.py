@@ -1,4 +1,3 @@
-"""The policy contract, shared by Gymnasium and the ROS policy."""
 import math
 import numpy as np
 

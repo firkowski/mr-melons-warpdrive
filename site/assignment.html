@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Mr. Melon's Warpdrive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: sticky system bar on top; on wide screens a contents rail on the left and one reading
+   column (~70ch) on the right; everything stacks to a single column on phones. */
+/* Layout: sticky system bar on top; on wide screens a contents rail on the left and one reading
+   column (~70ch) on the right; everything stacks to a single column on phones.
+   Single dark look: neutral greys from #131313, a cool blue accent, reactor orange for checkpoints. */
+/* Layout: sticky system bar on top; on wide screens a contents rail on the left and one reading
+   column (~70ch) on the right; everything stacks to a single column on phones.
+   Single dark look on pitch black: neutral greys, cube yellow accent and tasks, cube orange for checkpoints. */
+:root {
+  --paper: #000000;
+  --surface: #0c0c0c;
+  --raised: #151515;
+  --ink: #ededed;
+  --muted: #9c9c9c;
+  --line: #262626;
+  --accent: #ffd21f;
+  --accent-soft: #1a1600;
+  --on-accent: #000000;
+  --spark: #ff7a2e;
+  --spark-soft: #1c0e05;
+  --code-bg: #111111;
+  --task-head: #ffd21f;
+  --task-head-ink: #000000;
+  --task-bg: #0f0d02;
+  --plate: #f4f4f2;
+  --font-display: "DIN Pro", "DINPro", "DIN Next LT Pro", "DIN Next", "D-DIN", "Barlow", "Arial Narrow", sans-serif;
+  --font-body: "DIN Pro", "DINPro", "DIN Next LT Pro", "DIN Next", "D-DIN", "Barlow", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --step-0: 1rem;
+  --step-1: 1.2rem;
+  --step-2: 1.5rem;
+  --step-3: 2rem;
+  --step-4: clamp(2.3rem, 5vw, 3.4rem);
+  --radius: 3px;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.6;
+}
+a { color: var(--accent); text-underline-offset: 2px; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--spark); outline-offset: 2px; }
+h1, h2, h3, h4 { font-family: var(--font-display); line-height: 1.2; text-wrap: balance; margin: 0; }
+h2 { font-size: var(--step-3); font-weight: 600; }
+h3 { font-size: var(--step-2); font-weight: 600; }
+h4 { font-size: var(--step-1); font-weight: 600; }
+p, ul, ol { margin: 0; }
+code, pre, kbd { font-family: var(--font-mono); }
+code { font-size: 0.88em; background: var(--code-bg); padding: 0.08em 0.32em; border-radius: var(--radius); overflow-wrap: anywhere; }
+
+/* System bar */
+.sysbar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10;
+  background: var(--surface); border-bottom: 1px solid var(--line);
+  padding-inline: 16px;
+}
+.sysbar-inner {
+  max-width: 76rem; margin: 0 auto; padding-block: 0.6rem;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 1.2rem;
+}
+.brand { font-family: var(--font-display); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; font-size: 0.85rem; color: var(--muted); }
+.brand b { color: var(--ink); }
+.os-picker { display: flex; align-items: center; gap: 0.6rem; margin-left: auto; flex-wrap: wrap; }
+.os-picker .label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.seg button {
+  font: 500 0.92rem var(--font-body); color: var(--ink); background: transparent;
+  border: 0; padding: 0.38rem 0.9rem; cursor: pointer;
+}
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+.seg button:hover:not([aria-pressed="true"]) { background: var(--accent-soft); }
+
+/* Page grid */
+.page { padding-inline: 16px; }
+.wrap { max-width: 76rem; margin: 0 auto; display: grid; grid-template-columns: 15rem minmax(0, 1fr); gap: 3rem; padding-block: 2.5rem 5rem; }
+@media (max-width: 900px) { .wrap { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; padding-block: 1.5rem 4rem; } }
+
+.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 4.2rem); align-self: start; font-size: 0.92rem; }
+.toc h2 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-family: var(--font-body); font-weight: 600; margin-bottom: 0.6rem; }
+.toc ol { list-style: none; padding: 0; display: grid; gap: 0.15rem; }
+.toc a { display: flex; justify-content: space-between; gap: 0.5rem; color: var(--ink); text-decoration: none; padding: 0.22rem 0.5rem; border-radius: var(--radius); }
+.toc a:hover { background: var(--accent-soft); }
+.toc .pts { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 0.85em; }
+.toc .sub a { padding-left: 1.2rem; color: var(--muted); font-size: 0.9em; }
+@media (max-width: 900px) {
+  .toc { position: static; background: var(--surface); border: 1px solid var(--line); padding: 1rem; }
+  .toc .sub { display: none; }
+}
+
+main { min-width: 0; display: grid; gap: 3.5rem; }
+section { display: grid; gap: 1.1rem; min-width: 0; scroll-margin-top: 5rem; }
+section > * { min-width: 0; }
+.prose { max-width: 70ch; }
+.stack { display: grid; gap: 0.9rem; }
+ul.list, ol.list { padding-left: 1.3rem; display: grid; gap: 0.35rem; max-width: 70ch; }
+.muted { color: var(--muted); }
+
+/* Hero */
+.hero { display: grid; gap: 1.2rem; }
+.eyebrow { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); font-weight: 600; }
+.hero h1 { font-size: var(--step-4); font-weight: 700; letter-spacing: 0.01em; }
+.hero .sub { font-family: var(--font-display); font-size: var(--step-1); color: var(--accent); font-weight: 500; }
+.lede { font-size: 1.08rem; max-width: 64ch; }
+.repo { max-width: 70ch; border-left: 3px solid var(--accent); padding: 0.2rem 0 0.2rem 0.8rem; }
+.readout {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+  border: 1px solid var(--line); background: var(--surface);
+}
+.readout div { padding: 0.8rem 1rem; display: grid; gap: 0.1rem; }
+.readout div + div { border-left: 1px solid var(--line); }
+@media (max-width: 560px) { .readout div + div { border-left: 0; border-top: 1px solid var(--line); } }
+.readout dt { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+.readout dd { margin: 0; font-family: var(--font-display); font-size: 1.15rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* Figures */
+figure { margin: 0; display: grid; gap: 0.5rem; }
+.plate { background: var(--plate); border: 1px solid var(--line); padding: 0.75rem; overflow-x: auto; }
+.plate svg, .plate img { display: block; width: 100%; height: auto; min-width: 34rem; }
+figcaption { font-size: 0.88rem; color: var(--muted); max-width: 70ch; }
+
+/* Tables */
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 0.93rem; }
+th, td { text-align: left; padding: 0.55rem 0.8rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; background: var(--raised); }
+tr:last-child td { border-bottom: 0; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+td code { white-space: normal; }
+
+/* Part headers */
+.part-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.5rem 1rem; border-bottom: 2px solid var(--line); padding-bottom: 0.5rem; }
+.part-head .tag { font-family: var(--font-display); font-weight: 600; color: var(--muted); font-size: 0.95rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.part-head .points { font-family: var(--font-display); font-weight: 600; font-variant-numeric: tabular-nums; color: var(--accent); }
+
+/* Task, checkpoint, hint boxes */
+.task { border: 1px solid var(--line); background: var(--surface); }
+.task > header { background: var(--task-head); border-bottom: 1px solid var(--line); color: var(--task-head-ink); padding: 0.45rem 0.9rem; font-family: var(--font-display); font-weight: 600; letter-spacing: 0.03em; display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.task > header .id { opacity: 0.75; }
+.task > .body { padding: 0.9rem; display: grid; gap: 0.8rem; min-width: 0; }
+.task > .body > * { min-width: 0; }
+.check { border: 1.5px dashed var(--spark); background: var(--spark-soft); padding: 0.8rem 0.95rem; display: grid; gap: 0.35rem; }
+.check .label, .hint .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 600; }
+.check .label { color: var(--spark); }
+.hint { border: 1px solid var(--line); background: var(--accent-soft); padding: 0.8rem 0.95rem; display: grid; gap: 0.4rem; }
+.hint .label { color: var(--accent); }
+.hint ul { padding-left: 1.2rem; display: grid; gap: 0.3rem; }
+
+/* Code */
+.code { min-width: 0; display: grid; gap: 0.25rem; }
+.code .bar { display: flex; justify-content: space-between; align-items: end; gap: 0.5rem; min-height: 1.5rem; }
+.code pre {
+  margin: 0; background: var(--code-bg); border: 1px solid var(--line);
+  padding: 0.75rem 0.9rem; overflow-x: auto; font-size: 0.86rem; line-height: 1.55; white-space: pre;
+}
+.code .copy {
+  margin-left: auto; font: 500 0.75rem var(--font-body); color: var(--muted); background: var(--surface);
+  border: 1px solid var(--line); border-radius: var(--radius); padding: 0.15rem 0.55rem; cursor: pointer;
+}
+.code .copy:hover { color: var(--ink); }
+.code .shell { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+.c { color: var(--muted); }
+
+/* OS-specific content */
+.os-note { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); font-weight: 600; }
+.wrap[data-os="macos"] [data-os]:not([data-os~="macos"]),
+.wrap[data-os="windows"] [data-os]:not([data-os~="windows"]),
+.wrap[data-os="ubuntu"] [data-os]:not([data-os~="ubuntu"]) { display: none; }
+
+.steps { counter-reset: step; display: grid; gap: 1.4rem; list-style: none; padding: 0; }
+.steps > li { display: grid; grid-template-columns: 2.2rem minmax(0, 1fr); gap: 0.2rem 0.9rem; }
+.steps > li::before {
+  counter-increment: step; content: counter(step);
+  font-family: var(--font-display); font-weight: 700; font-size: 1.05rem;
+  width: 2.2rem; height: 2.2rem; display: grid; place-items: center;
+  border: 1.5px solid var(--ink); border-radius: 50%;
+}
+.steps > li > div { display: grid; gap: 0.7rem; min-width: 0; }
+
+.formula { font-family: var(--font-mono); background: var(--surface); border: 1px solid var(--line); padding: 0.7rem 0.9rem; overflow-x: auto; white-space: nowrap; font-size: 0.92rem; }
+footer.site { border-top: 1px solid var(--line); padding-top: 1.2rem; font-size: 0.88rem; color: var(--muted); }
+
+/* v2 additions */
+.os-block { display: grid; gap: 0.8rem; min-width: 0; }
+.wrap[data-os="macos"] .os-block:not([data-os~="macos"]),
+.wrap[data-os="windows"] .os-block:not([data-os~="windows"]),
+.wrap[data-os="ubuntu"] .os-block:not([data-os~="ubuntu"]) { display: none; }
+h3.step { display: flex; align-items: center; gap: 0.7rem; font-size: var(--step-1); margin-top: 0.6rem; }
+h3.step .n { flex: none; width: 2rem; height: 2rem; display: grid; place-items: center; border: 1.5px solid var(--ink); border-radius: 50%; font-size: 1rem; font-weight: 700; }
+section > p, .task .body > p, .check > p, .hint > p { max-width: 70ch; }
+.plate.wide img { min-width: 40rem; }
+/* Task boxes: the one strongly framed element on the page */
+.task { border: 1.5px solid var(--accent); background: var(--task-bg); box-shadow: 0 0 0 1px rgba(255, 210, 31, 0.12), 0 4px 18px rgba(255, 210, 31, 0.12); margin-block: 0.4rem; }
+.task > header { background: var(--task-head); color: var(--task-head-ink); border-bottom: 0; padding: 0.55rem 0.95rem; font-size: 1.05rem; }
+.task > header .id { opacity: 1; background: rgba(0, 0, 0, 0.14); padding: 0 0.45rem; border-radius: var(--radius); }
+.task > .body { padding: 1rem 1.05rem; }
+.task .code pre { background: var(--surface); }
+.hint { background: var(--raised); border-color: var(--line); }
+.hint .label { color: var(--muted); }
+.home { display: inline-flex; align-items: center; gap: 0.7rem; text-decoration: none; color: inherit; }
+.logo { width: 2.75rem; height: 2.75rem; display: block; }
+.sysbar-inner { padding-block: 0.45rem; }
+h1, h2, h3, h4 { letter-spacing: 0.01em; }
+.hero h1 { font-weight: 700; letter-spacing: 0; }
+.plate { border-color: #333; }
+.plate.dark { background: #000; padding: 0; }
+.plate.dark img { width: 100%; height: auto; }
+.check, .hint { gap: 0.5rem; }
+.check ul.list, .hint ul.list, .task ul.list, .task ol.list { max-width: none; }
+.math { overflow-x: auto; overflow-y: hidden; padding-block: 0.3rem; max-width: 100%; }
+.math mjx-container[display="true"] { margin: 0.2em 0 !important; }
+mjx-container { color: var(--ink); }
+.math:not(:has(mjx-container)), .m:not(:has(mjx-container)) { font-family: var(--font-mono); font-size: 0.9em; color: var(--muted); }
+pre.tree { white-space: pre; }
+.m { overflow-wrap: anywhere; }
+td code { overflow-wrap: normal; word-break: normal; }
+</style>
+</head>
+<body>
+
+
+<header class="sysbar">
+  <div class="sysbar-inner">
+    <a class="home" href="#overview"><img class="logo" src="images/logo.png" alt="Real World Robotics logo: a hand holding a Rubik's cube" width="96" height="96"><span class="brand"><b>Real World Robotics</b> · HS 2026</span></a>
+    <div class="os-picker" role="group" aria-label="Your operating system">
+      <span class="label" id="os-label">Your system</span>
+      <div class="seg">
+        <button type="button" id="os-macos" data-pick="macos" aria-pressed="false">macOS</button>
+        <button type="button" id="os-windows" data-pick="windows" aria-pressed="false">Windows</button>
+        <button type="button" id="os-ubuntu" data-pick="ubuntu" aria-pressed="true">Ubuntu</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="page">
+<div class="wrap" id="wrap" data-os="ubuntu">
+<nav class="toc" aria-label="Contents"><h2>Contents</h2><ol><li><a href="#overview"><span>Overview</span></a></li><li><a href="#setup"><span>Setup</span></a></li><li><a href="#cad"><span>1 · Pendulum</span><span class="pts">25</span></a></li><li class="sub"><a href="#cad-model"><span>CAD and mass</span></a></li><li class="sub"><a href="#cad-visual"><span>Visual model</span></a></li><li><a href="#ros"><span>2 · ROS 2</span><span class="pts">30</span></a></li><li class="sub"><a href="#ros-basics"><span>ROS 2 in a nutshell</span></a></li><li class="sub"><a href="#ros-node"><span>Policy node</span></a></li><li class="sub"><a href="#ros-dummy"><span>Dummy policy</span></a></li><li><a href="#rl"><span>3 · Controller</span><span class="pts">45</span></a></li><li class="sub"><a href="#rl-interface"><span>Task interface</span></a></li><li class="sub"><a href="#rl-train"><span>Train and evaluate</span></a></li><li class="sub"><a href="#rl-demo"><span>Demonstration</span></a></li><li><a href="#submission"><span>Submission</span></a></li><li><a href="#policy"><span>AI &amp; TA policy</span></a></li><li><a href="#help"><span>Troubleshooting</span></a></li></ol></nav>
+<main>
+<section id="overview" class="hero"><p class="eyebrow">Assignment · Prof. Dr. Robert Katzschmann · TA: Max Firkowski</p><h1>Mr. Melon's Warpdrive</h1><p class="sub">Rebuild the model, learn the controller, reconnect the reactor</p><p class="lede">Mr. Melon is a famous and extremely wealthy spaceship builder. A recent cyberattack has corrupted his company's systems: parts of the ship models, reactor controllers and communication software have disappeared. Before his next ship can leave the hangar, someone must reconstruct the missing components of its warpdrive. That someone is you.</p><p class="repo">All code for the assignment is in the repository <a href="https://github.com/firkowski/mr-melons-warpdrive" target="_blank" rel="noopener">github.com/firkowski/mr-melons-warpdrive</a>. You clone it during setup; there is nothing else to download from this page.</p><dl class="readout"><div><dt>Part 1 · CAD</dt><dd>25 points</dd></div><div><dt>Part 2 · ROS 2</dt><dd>30 points</dd></div><div><dt>Part 3 · RL</dt><dd>45 points</dd></div></dl><p>The reactor's stabiliser is a <strong>Furuta pendulum</strong>: a motor turns a horizontal arm, and a pendulum swings freely about a joint at the arm's tip. To restart the reactor, the controller must swing the pendulum up from its resting position and keep it upright.</p>
+<p>In this assignment you combine three skills you will need throughout the course and in your project: you reconstruct a part in CAD and extract the physical properties a simulator needs, connect a controller to a simulated robot through ROS 2, and train that controller with reinforcement learning.</p>
+<figure><div class="plate dark"><img src="images/reactor.jpg" alt="Render of the reactor (base, arm and pendulum) with the angles θ and α, the motor and hinge axes, and the control loop between policy, simulator and RViz" width="1280" height="720"></div><figcaption>Frames and angles (top) and the closed loop you will build (bottom): the policy receives joint states and commands a motor current, the simulator integrates the equations of motion, RViz shows the joint motion.</figcaption></figure>
+<h3>The three parts</h3>
+<ol class="list"><li><strong>Recover the missing pendulum</strong>: rebuild it in CAD from its blueprint and extract its mass properties.</li><li><strong>Reconnect the reactor through ROS 2</strong>: complete the node that runs a policy in the ROS 2 loop, and test it with a dummy policy.</li><li><strong>Restore the reactor controller</strong>: design a reward, train one policy for swing-up and balancing, evaluate it and demonstrate it in ROS 2.</li></ol>
+<p>The ROS 2 part comes before training on purpose: with a working node you can watch every policy you train in RViz, and problems in your node are not mistaken for problems in your policy.</p>
+<h3>What you edit</h3>
+<div class="table-wrap"><table><thead><tr><th>File</th><th>What to do</th><th>Part</th></tr></thead><tbody><tr><td><code>config/reactor_params.yaml</code></td><td>Replace the <code>null</code> pendulum values with your CAD results</td><td class="num">1</td></tr><tr><td><code>urdf/model/pendulum.stl</code></td><td>Your exported pendulum mesh, in mm</td><td class="num">1</td></tr><tr><td><code>urdf/reactor.urdf</code></td><td>Set the pendulum's visual <code>&lt;origin&gt;</code> (marked TODO)</td><td class="num">1</td></tr><tr><td><code>warpdrive/policy_node.py</code></td><td>Complete the ROS 2 policy node (marked TODO)</td><td class="num">2</td></tr><tr><td><code>warpdrive/task.py</code></td><td>Implement <code>reward()</code>. You are free to create helper functions in <code>warpdrive/task.py</code> or in separate files</td><td class="num">3</td></tr></tbody></table></div>
+<p>Everything else is supplied: the equations of motion, a Gymnasium environment, the training and evaluation scripts, the ROS 2 simulator, URDF, RViz configuration and launch file. Do not change the physics, the environment, the simulator or the evaluator.</p></section>
+<section id="setup"><div class="part-head"><h2>Setup</h2><span class="tag">macOS · Windows · Ubuntu</span></div><p>If you run into errors during setup, see <a href="#help">Troubleshooting</a> at the bottom of this page.</p>
+<p>On every system you install <strong>ROS 2 Humble from RoboStack</strong> with micromamba, into an environment called <code>ros_env</code>. RoboStack brings its own Python, so ROS, training and your policy node all use the same interpreter. Pick your system in the bar at the top; the commands below change with it.</p>
+<div class="os-block" data-os="windows"><p>On Windows, use <strong>PowerShell</strong> for every command and keep the workspace on a short path without spaces, such as <code>C:\reactor_ws</code>.</p></div>
+<div class="os-block" data-os="macos"><p>On macOS, use the Terminal app (zsh). Both Apple Silicon and Intel Macs work.</p></div>
+<div class="os-block" data-os="ubuntu"><p>On Ubuntu (22.04 or newer, including the course VM), use a terminal (bash). If your <code>~/.bashrc</code> sources a system ROS installation (<code>/opt/ros/...</code>), remove that line: it conflicts with RoboStack.</p></div>
+<h3 class="step"><span class="n">1</span><span>Install micromamba</span></h3>
+<div class="os-block" data-os="macos ubuntu"><div class="code"><pre>&quot;${SHELL}&quot; &lt;(curl -L micro.mamba.pm/install.sh)</pre></div></div>
+<div class="os-block" data-os="macos"><p>With Homebrew, <code>brew install micromamba</code> also works.</p></div>
+<div class="os-block" data-os="windows"><div class="code"><pre>Invoke-Expression ((Invoke-WebRequest -Uri https://micro.mamba.pm/install.ps1 -UseBasicParsing).Content)</pre></div></div>
+<div class="os-block" data-os="windows"><p>Windows also needs <strong>Visual Studio 2022 with C++ support</strong> (workload “Desktop development with C++”).</p></div>
+<p>Close and reopen the terminal afterwards.</p>
+<h3 class="step"><span class="n">2</span><span>Create the ROS 2 environment</span></h3>
+<div class="code"><pre>micromamba create -n ros_env -c conda-forge -c robostack-humble ros-humble-desktop
+micromamba activate ros_env
+micromamba config append channels robostack-humble --env
+micromamba install -c conda-forge ros-dev-tools git
+rviz2</pre></div>
+<p>If an RViz window opens, ROS works. Activating <code>ros_env</code> also sets up ROS; no extra <code>source</code> of ROS itself is needed. The <a href="https://robostack.github.io/micromamba.html" target="_blank" rel="noopener">RoboStack guide</a> has more detail if a step fails.</p>
+<h3 class="step"><span class="n">3</span><span>Get the package</span></h3>
+<div class="os-block" data-os="macos ubuntu"><div class="code"><pre>mkdir -p ~/reactor_ws/src &amp;&amp; cd ~/reactor_ws/src
+git clone https://github.com/firkowski/mr-melons-warpdrive.git melon_warpdrive
+cd melon_warpdrive</pre></div></div>
+<div class="os-block" data-os="windows"><div class="code"><pre>mkdir C:\reactor_ws\src; cd C:\reactor_ws\src
+git clone https://github.com/firkowski/mr-melons-warpdrive.git melon_warpdrive
+cd melon_warpdrive</pre></div></div>
+<p>This clones the <a href="https://github.com/firkowski/mr-melons-warpdrive" target="_blank" rel="noopener">assignment repository</a> into a folder called <code>melon_warpdrive</code>.</p>
+<p>The package sits in the <code>src</code> folder of a colcon workspace, <code data-os="macos ubuntu">~/reactor_ws</code> <code data-os="windows">C:\reactor_ws</code> .</p>
+<h3 class="step"><span class="n">4</span><span>Install the Python dependencies</span></h3>
+<p>With <code>ros_env</code> active and in the package folder, install PyTorch (CPU) and the package with its training and plotting extras:</p>
+<div class="os-block" data-os="macos"><div class="code"><pre>python -m pip install torch
+python -m pip install -e &quot;.[rl,plots]&quot; &quot;setuptools&lt;80&quot;</pre></div></div>
+<div class="os-block" data-os="windows ubuntu"><div class="code"><pre>python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+python -m pip install -e &quot;.[rl,plots]&quot; &quot;setuptools&lt;80&quot;</pre></div></div>
+<p><code>setuptools&lt;80</code> avoids a colcon error, <code>option --editable not recognized</code>.</p>
+<h3 class="step"><span class="n">5</span><span>Build the workspace</span></h3>
+<div class="os-block" data-os="windows"><p>First turn on <strong>Developer Mode</strong> in the Windows settings (System › For developers). It allows the symlinks that <code>--symlink-install</code> creates.</p></div>
+<div class="os-block" data-os="macos"><div class="code"><pre>cd ~/reactor_ws
+colcon build --symlink-install --packages-select melon_warpdrive
+source install/setup.zsh</pre></div></div>
+<div class="os-block" data-os="ubuntu"><div class="code"><pre>cd ~/reactor_ws
+colcon build --symlink-install --packages-select melon_warpdrive
+source install/setup.bash</pre></div></div>
+<div class="os-block" data-os="windows"><div class="code"><pre>cd C:\reactor_ws
+colcon build --symlink-install --merge-install --packages-select melon_warpdrive
+.\install\setup.ps1</pre></div></div>
+<p><code>--symlink-install</code> means edits to Python files, the URDF and the YAML take effect without rebuilding. <strong>Rebuild</strong> after adding new files, such as <code>pendulum.stl</code>.</p>
+<h3 class="step"><span class="n">6</span><span>In every new terminal</span></h3>
+<div class="os-block" data-os="macos"><div class="code"><pre>micromamba activate ros_env
+source ~/reactor_ws/install/setup.zsh
+cd ~/reactor_ws/src/melon_warpdrive</pre></div></div>
+<div class="os-block" data-os="ubuntu"><div class="code"><pre>micromamba activate ros_env
+source ~/reactor_ws/install/setup.bash
+cd ~/reactor_ws/src/melon_warpdrive</pre></div></div>
+<div class="os-block" data-os="windows"><div class="code"><pre>micromamba activate ros_env
+C:\reactor_ws\install\setup.ps1
+cd C:\reactor_ws\src\melon_warpdrive</pre></div></div>
+<p>From here on, every command is <strong>the same on all three systems</strong> and runs from the package folder.</p>
+<div class="hint"><span class="label">Before training</span><p>Training uses the CPU heavily for 10–20 minutes on a recent laptop, longer on older machines or in a virtual machine. Close other programs and stop your computer from going to sleep during a run. If you work in a virtual machine, give it 50–75 % of your RAM and most of your CPU cores.</p></div></section>
+<section id="cad"><div class="part-head"><span class="tag">Part 1</span><span class="points">25 points</span></div><h2>Recover the missing pendulum</h2><p>The reactor's pendulum model is corrupted; only its blueprint survived. Rebuild the part from the blueprint below, assign the specified material, extract its mass properties for the simulator and add it to the visual robot model.</p>
+<p>We recommend <a href="https://www.onshape.com/en/" target="_blank" rel="noopener">OnShape</a>, a CAD platform that runs in your browser and needs no installation. The TAs can only support OnShape and Fusion 360; other software that reports mass properties and exports STL is fine, but you will need to solve its issues yourself.</p>
+<figure><div class="plate dark"><img src="images/pendulum-drawing.png" alt="Dimensioned drawing of the pendulum: front view with Z axis vertical, section A-A with X axis, and an isometric view." width="1644" height="1355"></div><figcaption>Blueprint of the pendulum, dimensions in mm. Material: <strong>titanium, 4500 kg/m³</strong>.</figcaption></figure>
+<h3 id="cad-model">Coordinate frame and mass properties</h3>
+<p>Model the part in the drawing's coordinate frame. The drawing's X and Z axes are the pendulum-local axes used by the simulator:</p>
+<ul class="list"><li>local <strong>x</strong> is the hinge axis; it points radially along the arm;</li><li>local <strong>z</strong> points from the pivot towards the centre of mass (COM) when the pendulum is upright.</li></ul>
+<p>The pendulum rotates about the centre of one of its end bores; that bore is the pivot.</p>
+<article class="task"><header><span class="id">Task 1.1</span><span>CAD model</span></header><div class="body"><ol class="list"><li>Create a new document called <code>Pendulum</code> and model the part from the drawing: sketch a profile, then add or remove material with extrusions. Keep the drawing's axes aligned with the CAD axes.</li><li>Assign the material: titanium, 4500 kg/m³.</li></ol></div></article>
+<article class="task"><header><span class="id">Task 1.2</span><span>Mass properties</span></header><div class="body"><ol class="list"><li>Open the mass properties of the part (OnShape: <em>Mass properties</em> tool in the Part Studio). Read the mass, the COM position and the inertia tensor <strong>about the COM</strong>, in the drawing's axes.</li><li>Enter the values below into <code>config/reactor_params.yaml</code>, replacing the <code>null</code> entries. Keep all other values unchanged.</li><li>Check that the file loads:</li></ol>
+<div class="code"><pre>python -c &quot;from warpdrive.model import load_parameters; print(load_parameters(&#x27;config/reactor_params.yaml&#x27;))&quot;</pre></div>
+<p>In the CAD software, take a screenshot of the mass properties showing material, mass, COM and the reference frame.</p></div></article>
+<div class="table-wrap"><table><thead><tr><th>Quantity</th><th>YAML field</th><th>Units and reference</th></tr></thead><tbody><tr><td>Pendulum mass</td><td><code>pendulum_mass</code></td><td>kg; the complete rigid pendulum body</td></tr><tr><td>Pendulum COM distance</td><td><code>pendulum_com</code></td><td>m; pivot to COM along local +z</td></tr><tr><td>Pendulum COM inertia</td><td><code>pendulum_ixx</code>, <code>pendulum_iyy</code>, <code>pendulum_izz</code></td><td>kg·m²; about the local axes <strong>through the COM</strong></td></tr></tbody></table></div>
+<div class="hint"><span class="label">Common mistakes</span><ul class="list"><li>The supplied equations already shift the pendulum inertia from its COM to the pivot. <strong>Do not apply the parallel-axis shift yourself.</strong></li><li>Check which physical axis each reported moment belongs to; do not copy principal moments without checking.</li><li>Use SI units: g → kg and mm → m multiply by 10⁻³; kg·mm² → kg·m² multiplies by 10⁻⁶.</li><li>The arm values (<code>arm_length</code>, <code>arm_inertia</code>) are supplied. Motor, damping and timing values cannot be obtained from CAD; do not change them.</li></ul></div>
+<h3 id="cad-visual">Visual model</h3>
+<p>The simulator only needs the numbers from Task 1.2. RViz, however, draws the robot from a URDF file, which describes its links, joints and meshes. The pendulum's mesh is missing. <a href="https://docs.ros.org/en/humble/Tutorials/Intermediate/URDF/URDF-Main.html" target="_blank" rel="noopener">For more about URDF, see the ROS documentation</a>.</p>
+<article class="task"><header><span class="id">Task 1.3</span><span>Visual model</span></header><div class="body"><ol class="list"><li>Export the part as STL <strong>in millimetres</strong> to <code>urdf/model/pendulum.stl</code>.</li><li>In <code>urdf/reactor.urdf</code>, set the <code>&lt;origin&gt;</code> of the pendulum's <code>&lt;visual&gt;</code> element so that the link origin lies on the pivot and the pendulum points along +z at α = 0.</li><li>Rebuild the workspace (step 5 of the setup) so the new STL is installed, then start the simulator and RViz without a controller:</li></ol>
+<div class="code"><pre>ros2 launch melon_warpdrive reactor.launch.py &quot;parameters_file:=$PWD/config/reactor_params.yaml&quot;</pre></div>
+<p>The launch file starts several nodes at once; see the <a href="https://docs.ros.org/en/humble/Tutorials/Intermediate/Launch/Launch-Main.html" target="_blank" rel="noopener">ROS 2 launch documentation</a> to learn how launch files work.</p></div></article>
+<div class="check"><span class="label">Checkpoint</span><p>The parameter file loads without errors. With no controller running, RViz shows the pendulum hanging from the tip of the arm and rotating about its pivot.</p></div></section>
+<section id="ros"><div class="part-head"><span class="tag">Part 2</span><span class="points">30 points</span></div><h2>Reconnect the reactor through ROS 2</h2><p>ROS 2 is a core framework in modern robotics. It lets perception, control, logging and user interfaces run as separate programs that communicate reliably with one another, and it scales from a laptop simulation to multi-sensor, multi-computer systems. Even if you are not new to ROS 2, work through the official beginner tutorials <a href="https://docs.ros.org/en/humble/Tutorials/Beginner-CLI-Tools.html" target="_blank" rel="noopener">CLI tools</a> and <a href="https://docs.ros.org/en/humble/Tutorials/Beginner-Client-Libraries.html" target="_blank" rel="noopener">Client libraries</a> (especially workspaces, packages and publishers/subscribers) before turning to an AI assistant. They are short, and they explain the structure and the common pitfalls. We work with Python, so follow the Python versions.</p>
+<h3 id="ros-basics">ROS 2 in a nutshell</h3>
+<p><strong>Why publisher/subscriber?</strong> Robots are made of parts that run at different rates and have distinct jobs: a camera node streaming detections at 30 Hz, a state estimator fusing an IMU at 200 Hz, a controller updating motors at 100 Hz. Each part publishes what it produces and subscribes to what it needs, so the parts stay loosely coupled behind clear interfaces and are easy to test, swap and extend. Here, the same policy node could drive the simulator or, in principle, a real motor driver publishing the same topics.</p>
+<div class="table-wrap"><table><thead><tr><th>Concept</th><th>Meaning</th></tr></thead><tbody><tr><td><a href="https://docs.ros.org/en/humble/Tutorials/Beginner-CLI-Tools/Understanding-ROS2-Nodes/Understanding-ROS2-Nodes.html" target="_blank" rel="noopener">Node</a></td><td>One program with one job, such as the simulator or your policy.</td></tr><tr><td><a href="https://docs.ros.org/en/humble/Concepts/Basic/About-Topics.html" target="_blank" rel="noopener">Topic</a>, <a href="https://docs.ros.org/en/humble/Concepts/Basic/About-Interfaces.html" target="_blank" rel="noopener">message</a></td><td>A named channel carrying messages of one type. Nodes publish to and subscribe from topics without knowing about each other.</td></tr><tr><td><a href="https://docs.ros.org/en/humble/Concepts/Basic/About-Services.html" target="_blank" rel="noopener">Service</a></td><td>A request/response call; used here to reset the simulator.</td></tr><tr><td><a href="https://docs.ros.org/en/humble/Concepts/Basic/About-Parameters.html" target="_blank" rel="noopener">Parameter</a></td><td>Configures a node at start-up without changing its code, such as the path to your policy.</td></tr><tr><td><a href="https://docs.ros.org/en/humble/Concepts/Intermediate/About-Quality-of-Service-Settings.html#overview" target="_blank" rel="noopener">QoS</a></td><td>Quality-of-service settings: how messages are delivered, for example how many old messages are queued when a subscriber cannot keep up.</td></tr><tr><td>Package, workspace</td><td>A package groups nodes, launch files and configuration. It lives in the <code>src/</code> folder of a workspace, which you build with <code>colcon build</code> and activate in every terminal by sourcing <code>install/setup.*</code>.</td></tr><tr><td><code>ros2 run</code>, <code>ros2 launch</code></td><td><code>ros2 run</code> starts one node; <code>ros2 launch</code> starts several nodes with their parameters from a launch file.</td></tr></tbody></table></div>
+<p>Useful for debugging: <code>ros2 topic list</code>, <code>ros2 topic echo &lt;topic&gt;</code>, <code>ros2 topic hz &lt;topic&gt;</code>, <code>ros2 node info &lt;node&gt;</code> and <code>rqt_graph</code>, which draws all nodes and topics as a graph.</p>
+<h3>The reactor's ROS graph</h3>
+<p>The launch file starts three nodes: the <strong>simulator</strong>, which integrates the equations of motion every 10 ms and publishes the joint states; <strong>robot_state_publisher</strong>, which turns joint states into the frames of the URDF; and <strong>RViz</strong>, which displays them. Your <strong>policy node</strong> closes the loop.</p>
+<div class="table-wrap"><table><thead><tr><th>Interface</th><th>Type</th><th>Meaning</th></tr></thead><tbody><tr><td><code>/joint_states</code></td><td><code>sensor_msgs/msg/JointState</code></td><td><code>arm_joint</code>, <code>pendulum_joint</code>; position in rad, velocity in rad/s</td></tr><tr><td><code>/reactor/current_cmd</code></td><td><code>std_msgs/msg/Float64</code></td><td>motor current in A, <strong>not</strong> the normalised action</td></tr><tr><td><code>/reactor/reset</code></td><td><code>std_srvs/srv/Trigger</code></td><td>reset near the hanging-down position</td></tr></tbody></table></div>
+<p>To display the current ROS graph, run the following in another terminal, set up as in <a href="#setup">setup step 6</a>:</p>
+<div class="code"><pre>rqt_graph</pre></div>
+<p>The graph shows only the nodes that are currently running. With the simulator, robot_state_publisher and RViz launched (Task 1.3), it should look similar to the one below. The right-most node is RViz's transform listener, which receives the frames RViz displays.</p>
+<figure><div class="plate wide dark"><img src="images/rqt_graph.png" alt="rqt_graph: /warpdrive_simulator publishes /joint_states to /robot_state_publisher, which publishes /tf and /tf_static to RViz's transform listener." width="2568" height="486"></div><figcaption>rqt_graph with the simulator, robot_state_publisher and RViz running.</figcaption></figure>
+<p>The simulator holds the last command for at most 100 ms; after that it applies zero current. Learning stays offline: the policy node only runs a trained network.</p>
+<article class="task" id="ros-node"><header><span class="id">Task 2.1</span><span>Policy node</span></header><div class="body"><p>Complete <code>warpdrive/policy_node.py</code>, following its TODOs, so that every incoming joint-state message produces a current command. Your node must:</p>
+<ol class="list"><li>declare the node parameters <code>model_file</code> and <code>parameters_file</code>, and load the policy and the parameter file saved by a training run;</li><li>create the publisher and the subscription with a suitable QoS (Hint: the QoS must match between the subscriber and publisher);</li><li>look up the joints by name instead of relying on their order in the message;</li><li>give the policy exactly the input it saw during training, and use deterministic inference (refer to <a href="https://stable-baselines3.readthedocs.io/en/master/modules/sac.html" target="_blank" rel="noopener">Stable Baselines3's SAC documentation</a> for details);</li><li>convert the policy's action to amperes and publish it;</li><li>publish zero current if a message is incomplete or contains non-finite values.</li></ol>
+<p>The node is installed as the executable <code>controller</code>.</p></div></article>
+<h3 id="ros-dummy">Test the loop with a dummy policy</h3>
+<p>You do not need a trained controller to test your node. The training script can save an untrained policy with the correct input and output sizes. It needs your completed parameter file from Part 1; the reward can still be the empty stub.</p>
+<article class="task"><header><span class="id">Task 2.2</span><span>Closed loop with a dummy policy</span></header><div class="body"><p>Create the dummy policy:</p>
+<div class="code"><pre>python -m warpdrive.train --steps 1 --out runs/dummy</pre></div>
+<p>Open three terminals, each set up as in <a href="#setup">setup step 6</a>.</p>
+<div class="code"><span class="shell">Terminal 1 · simulator, robot_state_publisher, RViz</span><pre>ros2 launch melon_warpdrive reactor.launch.py &quot;parameters_file:=$PWD/runs/dummy/reactor_params.yaml&quot;</pre></div>
+<div class="code"><span class="shell">Terminal 2 · your policy node</span><pre>ros2 run melon_warpdrive controller --ros-args -p &quot;model_file:=$PWD/runs/dummy/policy.zip&quot; -p &quot;parameters_file:=$PWD/runs/dummy/reactor_params.yaml&quot;</pre></div>
+<div class="code"><span class="shell">Terminal 3 · reset and inspect</span><pre>ros2 service call /reactor/reset std_srvs/srv/Trigger &quot;{}&quot;
+ros2 topic echo /reactor/current_cmd
+ros2 topic hz /reactor/current_cmd</pre></div>
+<p>With all nodes running, take a screenshot of <code>rqt_graph</code> that clearly shows the nodes and their topics.</p>
+<p>An untrained policy only makes the pendulum twitch; the point is that the loop runs. Keep this setup: from now on you can watch every policy you train by pointing <code>model_file</code> at it.</p></div></article>
+<p>With the launch file and your policy node running, <code>rqt_graph</code> should look similar to the one below. Compared with the graph from Task 1.3, your node <code>/warpdrive_policy</code> now subscribes to <code>/joint_states</code> and publishes <code>/reactor/current_cmd</code> back to the simulator, closing the loop.</p>
+<figure><div class="plate wide dark"><img src="images/rqt_graph2.png" alt="rqt_graph: /warpdrive_simulator publishes /joint_states to /robot_state_publisher and to /warpdrive_policy; /warpdrive_policy publishes /reactor/current_cmd back to the simulator; robot_state_publisher publishes /tf and /tf_static to RViz's transform listener." width="2568" height="486"></div><figcaption>rqt_graph with the simulator, robot_state_publisher, RViz and your policy node running.</figcaption></figure>
+<div class="check"><span class="label">Checkpoint</span><p>Your node runs without errors, publishes a current in amperes within ±<code>current_limit</code> for every joint-state message (about 100 Hz), and publishes zero current for a malformed message. You can name the direction of each topic in the loop.</p></div></section>
+<section id="rl"><div class="part-head"><span class="tag">Part 3</span><span class="points">45 points</span></div><h2>Restore the reactor controller</h2><p>The pendulum starts hanging down. A working controller must first pump energy into the system to swing it up, then slow it down and balance it upright. You implement this as <strong>one learned policy</strong>.</p>
+<h3>Reinforcement learning in a nutshell</h3>
+<p>An <strong>agent</strong> repeatedly observes the state of an <strong>environment</strong>, chooses an <strong>action</strong> and receives a scalar <strong>reward</strong>. The steps from one reset to the end form an <strong>episode</strong>. The agent learns a <strong>policy</strong>, a mapping from observations to actions, that maximises the expected sum of discounted rewards. The reward is the only way you tell the agent what you want, and it learns whatever the reward pays for, including behaviour you did not intend.</p>
+<p>The environment is a Gymnasium environment (<code>warpdrive/env.py</code>) around the same equations of motion as the ROS 2 simulator. You train with Soft Actor-Critic (SAC) from Stable-Baselines3: an off-policy actor-critic algorithm for continuous actions that learns from a replay buffer of past experience and explores by rewarding randomness in its actions.</p>
+<h3 id="rl-interface">Model and task interface</h3>
+<p>The state is <span class="m">\(x=[\theta,\alpha,\dot\theta,\dot\alpha]^\top\)</span>, with <span class="m">\(\alpha=0\)</span> upright and <span class="m">\(\alpha=\pi\)</span> hanging down. Positive arm rotation is about <span class="m">\(+z\)</span>; positive pendulum rotation is about the arm-local <span class="m">\(+x\)</span> axis. With <span class="m">\(q=[\theta,\alpha]^\top\)</span>, the model has the form below; the full expressions are in <code>docs/DYNAMICS.md</code>, and you do not need to derive them.</p>
+<div class="math">\[M(q)\,\ddot q + h(q,\dot q) + g(q) + B\,\dot q = \begin{bmatrix}\tau\\0\end{bmatrix},\qquad \tau = K_\tau\, i\]</div>
+<div class="table-wrap"><table><tbody><tr><th scope="row">Observation</th><td><span class="m">\([\sin\theta,\ \cos\theta,\ \sin\alpha,\ \cos\alpha,\ \dot\theta/10,\ \dot\alpha/10]\)</span></td></tr><tr><th scope="row">Action</th><td>one number <span class="m">\(a\in[-1,1]\)</span></td></tr><tr><th scope="row">Current</th><td><span class="m">\(i=a\,i_{\max}\)</span> amperes, with <span class="m">\(i_{\max}=\)</span> <code>current_limit</code></td></tr><tr><th scope="row">Control interval</th><td>0.01 s, with five RK4 physics substeps per action</td></tr><tr><th scope="row">Episode</th><td><code>episode_seconds</code> long, starting near the hanging-down position; swinging through the bottom does not end it</td></tr><tr><th scope="row">Termination</th><td>exceeding the arm or pendulum speed limit ends the episode with reward −10; the time limit truncates it</td></tr><tr><th scope="row">Balanced</th><td>within 10° of upright, arm slower than 2 rad/s, pendulum slower than 1 rad/s (<code>upright(state)</code> in <code>task.py</code>)</td></tr></tbody></table></div>
+<article class="task"><header><span class="id">Task 3.1</span><span>Reward function</span></header><div class="body"><p>Implement <code>reward(state, normalized_action)</code> in <code>warpdrive/task.py</code>. It is called after every step that did not end in a speed-limit failure and must return a float. A good reward guides the agent through both phases: it makes progress towards upright worthwhile, rewards slow and stable balancing, and discourages unnecessary effort.</p></div></article>
+<div class="hint"><span class="label">Mind the scale of your reward</span><p>If the rewards collected over a full episode often add up to less than −10, ending the episode early by exceeding a speed limit becomes the agent's best strategy. In other words, the agent may learn to spin the pendulum as fast as possible to avoid incurring the negative reward.</p></div>
+<article class="task" id="rl-train"><header><span class="id">Task 3.2</span><span>Training</span></header><div class="body"><p>Train with the supplied script (SAC, two hidden layers of 64 units, 200,000 steps by default) and record the seed:</p>
+<div class="code"><pre>python -m warpdrive.train --out runs/policy --seed 7</pre></div>
+<p>To change the number of steps, use the <code>--steps</code> option. For example, to stop training after 100,000 steps, run</p>
+<div class="code"><pre>python -m warpdrive.train --out runs/policy --seed 7 --steps 100000</pre></div>
+<p>Training takes about 10–20 minutes on a recent laptop (longer in a virtual machine). It writes to <code>runs/policy/</code>:</p>
+<div class="table-wrap"><table><thead><tr><th>File</th><th>Content</th></tr></thead><tbody><tr><td><code>policy.zip</code></td><td>policy at the end of training</td></tr><tr><td><code>best_model.zip</code></td><td>best policy found by the periodic evaluation during training</td></tr><tr><td><code>reactor_params.yaml</code></td><td>copy of the exact parameters used; use this copy for everything that follows</td></tr><tr><td><code>contract.json</code></td><td>observation and action definition, seed, step count</td></tr><tr><td><code>evaluations.npz</code>, <code>training.monitor.csv</code></td><td>learning curves</td></tr></tbody></table></div>
+<p>Watch the trained policy in RViz with your setup from Task 2.2, pointing <code>model_file</code> and <code>parameters_file</code> at <code>runs/policy/</code>. Use a new <code>--out</code> folder for every run you want to keep.</p></div></article>
+<article class="task"><header><span class="id">Task 3.3</span><span>Evaluation</span></header><div class="body"><p>Evaluate the policy on 20 episodes with the default evaluation seeds, and evaluate the zero-current baseline:</p>
+<div class="code"><pre>python -m warpdrive.evaluate --model runs/policy/best_model.zip --params runs/policy/reactor_params.yaml --out runs/policy/evaluation #trained policy evaluation
+python -m warpdrive.evaluate --params runs/policy/reactor_params.yaml --out runs/zero_current #zero-current baseline evaluation</pre></div>
+<p>Each writes <code>metrics.json</code> and the first episode's <code>trajectory.csv</code>. Plot pendulum angle (wrapped around upright), both angular velocities and current against time, for the policy and the baseline:</p>
+<div class="code"><pre>python tools/plot_trace.py runs/policy/evaluation/trajectory.csv --out runs/policy/evaluation/trajectory.png</pre></div></div></article>
+<div class="check"><span class="label">Success criterion</span><p>An episode counts as a success if no speed limit was exceeded and the pendulum is balanced (<code>upright(state)</code>: within 10° of upright, arm slower than 2 rad/s, pendulum slower than 1 rad/s) at every control sample of the final three seconds. <code>warpdrive.evaluate</code> reports this for each episode and as <code>success_rate</code> in <code>metrics.json</code>. Your policy is successful if it succeeds in most evaluation episodes. This defines "successful" for Tasks 3.4 and 3.5; it is not a grading threshold.</p></div>
+<article class="task" id="rl-demo"><header><span class="id">Task 3.4</span><span>Demonstration in ROS 2</span></header><div class="body"><p>Run your final policy with your node from Part 2, using the <code>runs/policy/reactor_params.yaml</code> saved by its training run for both the simulator and the node. If the policy is successful (see the success criterion above), reset the reactor and record a video (at most 30 s, <code>.mp4</code>) of the swing-up followed by balancing in RViz, with <code>ros2 topic echo /reactor/current_cmd</code> visible in a terminal.</p></div></article>
+<article class="task"><header><span class="id">Task 3.5</span><span>Analyse the reward</span></header><div class="body"><p>Write a short reward analysis. What it must contain depends on whether your final policy is successful (see the success criterion above).</p>
+<p><strong>If your policy is successful:</strong> explain how each element of your reward function was chosen to achieve the goal. For every term, say which behaviour it is meant to produce or prevent (for example swinging up, slowing down near the top, balancing, saving effort), why it has its weight or scale, and what changed when it was missing or set differently, if you tried that.</p>
+<p><strong>If your policy is not successful:</strong> you can still receive full marks. Analyse <strong>at least three reward designs</strong> you trained (up to three are assessed; feel free to train more). For each design:</p>
+<ul class="list"><li>describe how the agent "gamed" the reward: which behaviour it learned that earns a high return without achieving the goal (for example spinning the pendulum through the top, hovering near upright without slowing down, or ending the episode early), and why your reward pays for that behaviour;</li><li>explain the fix you applied in the next design and whether it worked.</li></ul>
+<p>In both cases, support your analysis with data from training: the periodic evaluation in <code>runs/&lt;run&gt;/evaluations.npz</code> (keys <code>timesteps</code>, <code>results</code>, <code>ep_lengths</code>), the training log <code>training.monitor.csv</code>, your evaluation trajectories and what you saw in RViz. Useful questions:</p>
+<ul class="list"><li>What does the return curve represent? What range of values is possible with your reward, and why?</li><li>How does its shape relate to what the agent learns, for example swing-up first and balancing later?</li><li>Episodes only end early when a speed limit is exceeded. What does the episode length tell you, and how can you use it to monitor training?</li></ul></div></article></section>
+<section id="submission"><div class="part-head"><h2>Submission</h2><span class="tag">Moodle · one ZIP</span></div><p>Upload one ZIP file named <code>assignment_[First name]_[Last name].zip</code> containing:</p>
+<ol class="list"><li><strong>CAD:</strong> the native CAD part or a view link to your OnShape document, STL export, the mass-property screenshot, your <code>config/reactor_params.yaml</code> and <code>urdf/reactor.urdf</code>.</li><li><strong>Code:</strong> your <code>warpdrive/task.py</code>, <code>warpdrive/policy_node.py</code>, and files with your helper functions, if applicable.</li><li><strong>Policy:</strong> the <code>runs/policy/</code> folder of your final run, which checkpoint you deployed (<code>policy.zip</code> or <code>best_model.zip</code>).</li><li><strong>Evaluation:</strong> <code>metrics.json</code> and <code>trajectory.csv</code> of your policy and of the zero-current baseline, and your plots.</li><li><strong>ROS 2:</strong> the <code>rqt_graph</code> screenshot and a link to your demonstration video. Make the link viewable by anyone with it, and test it in a private browser window.</li><li><strong>Reward Analysis (.txt, .md, .pdf or .docx)</strong>: Your answer to Task 3.5.</li></ol>
+<div class="table-wrap"><table><thead><tr><th>Part</th><th>Assessed</th><th>Points</th></tr></thead><tbody><tr><td>1 · Pendulum</td><td>CAD geometry and parameter extraction</td><td class="num">25</td></tr><tr><td>2 · ROS 2</td><td>policy node and closed-loop demonstration</td><td class="num">30</td></tr><tr><td>3 · Controller</td><td>reward, training, evaluation and analysis</td><td class="num">45</td></tr><tr><td><strong>Total</strong></td><td></td><td class="num"><strong>100</strong></td></tr></tbody></table></div>
+<p>Deviations from the "real" dynamics resulting from mistakes in the CAD part do not influence the grading of the other two parts of the assignment, as long as the resulting physics is plausible. Large inaccuracies (e.g. wrong inertia units) may, however, make it impossible to control the pendulum under the servo current constraints. Both the simulator and the training script use your parameter file, so there is no gap between the physics you train on and the physics you deploy on.</p></section>
+<section id="policy"><div class="part-head"><h2>AI &amp; TA policy</h2><span class="tag">Ask about the system, not the solution</span></div><p>You may ask the TAs and AI tools anything that helps you <strong>understand the system</strong>: the concepts, the tools, the supplied code and the errors you run into. You may not ask them for <strong>the solution</strong>: answers that decide or produce what a task asks you to deliver.</p>
+<div class="table-wrap"><table><thead><tr><th>Allowed: questions about the system</th><th>Not allowed: questions about the solution</th></tr></thead><tbody><tr><td>"What is a ROS node?"</td><td>"What is a good reward function for this task?"</td></tr><tr><td>"What is the difference between a state and an observation?"</td><td>"Write the code for this node."</td></tr><tr><td>"Why do we normalize the policy input?"</td><td>"What should I put in the URDF, and where?"</td></tr><tr><td>"Why is this error happening?"</td><td></td></tr></tbody></table></div>
+<div class="hint"><span class="label">Rule of thumb</span><p>If the answer explains how something works, ask. If the answer could go into your submission more or less as it is (code, a reward function, URDF content, parameter values), it is a solution: work it out yourself.</p></div></section>
+<section id="help"><div class="part-head"><h2>Troubleshooting</h2><span class="tag">and helpful notes</span></div><ul class="list"><li>Activate <code>ros_env</code> and source the workspace in every new terminal (setup step 6).</li><li>Use the same saved parameter file (the <code>reactor_params.yaml</code> copy in your <code>runs/...</code> folder) for evaluation, the simulator and the policy node.</li><li>Work incrementally: parameter file loads → pendulum looks right in RViz → your node publishes → it publishes the right values → train.</li></ul>
+<div class="table-wrap"><table><thead><tr><th>Symptom</th><th>Cause and fix</th></tr></thead><tbody><tr><td><code>micromamba</code> not found</td><td>The installer changed your shell profile. Close and reopen the terminal.</td></tr><tr><td><code>ros2</code> not found, or <code>No module named &#x27;rclpy&#x27;</code></td><td><code>ros_env</code> is not active: <code>micromamba activate ros_env</code>.</td></tr><tr><td><code>Package &#x27;melon_warpdrive&#x27; not found</code></td><td>The workspace is not built or not sourced in this terminal.</td></tr><tr><td><code>pendulum_mass must be a finite number</code></td><td>A value in the parameter file is still <code>null</code>. Pass a complete file.</td></tr><tr><td><code>No parameters_file given</code></td><td>The node or script was started without a parameter file.</td></tr><tr><td><code>FileNotFoundError: runs/policy/...</code></td><td>Relative paths are resolved from the current folder. Run from the package folder and pass <code>$PWD/...</code> paths.</td></tr><tr><td><code>NotImplementedError: Task 2.1: ...</code> from the policy node</td><td>A TODO in <code>warpdrive/policy_node.py</code> is not finished yet; the message says which part.</td></tr><tr><td>Simulator log: <code>Speed limit exceeded; paused</code></td><td>The arm or pendulum spun too fast. Call the reset service.</td></tr><tr><td>Pendulum mesh missing in RViz</td><td><code>pendulum.stl</code> was added after the last build. Rebuild and source again.</td></tr><tr><td><code>option --editable not recognized</code> during <code>colcon build</code></td><td>setuptools is too new: <code>python -m pip install &quot;setuptools&lt;80&quot;</code>.</td></tr><tr><td>Nodes do not see each other</td><td>Allow network access when the firewall asks, or set <code>ROS_LOCALHOST_ONLY=1</code> in every terminal: <code data-os="macos ubuntu">export ROS_LOCALHOST_ONLY=1</code> <code data-os="windows">$env:ROS_LOCALHOST_ONLY=1</code> .</td></tr><tr data-os="windows"><td><code>colcon build</code> fails creating symlinks</td><td>Turn on Developer Mode, or build without <code>--symlink-install</code> and rebuild after every edit.</td></tr><tr data-os="windows"><td><code>setup.ps1 cannot be loaded because running scripts is disabled</code></td><td>Run <code>Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code> once.</td></tr><tr data-os="windows"><td>Build errors about a missing C/C++ compiler</td><td>Install Visual Studio 2022 with “Desktop development with C++”, then open a new terminal.</td></tr><tr data-os="ubuntu"><td>Errors mentioning <code>/opt/ros/humble</code></td><td>A system ROS is sourced on top of RoboStack. Remove <code>source /opt/ros/...</code> from <code>~/.bashrc</code> and open a new terminal.</td></tr></tbody></table></div>
+<p><strong>Mindset.</strong> Robotics is as much about integration as about algorithms. Expect small hurdles: a wrong path, forgetting to source, a unit off by a factor of 1000. Solving them is part of the skill you are building. Share quick questions and fixes with your classmates, and if you hit a wall after debugging, reach out to the TA. The goal is not only to make the pendulum stand up, but to build a small system you can understand, explain and change in minutes.</p><footer class="site">Real World Robotics · Soft Robotics Lab, ETH Zürich · HS 2026 · TA: Max Firkowski, mfirkowski@ethz.ch · Code: <a href="https://github.com/firkowski/mr-melons-warpdrive" target="_blank" rel="noopener">github.com/firkowski/mr-melons-warpdrive</a></footer></section>
+</main>
+</div>
+</div>
+
+<script>window.MathJax = { tex: { inlineMath: [["\\(", "\\)"]], displayMath: [["\\[", "\\]"]] }, svg: { fontCache: "global" }, options: { enableMenu: false } };</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg-full.js" id="MathJax-script" async onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg-full.js';s.async=true;document.head.appendChild(s);"></script>
+<script>
+(function () {
+  var wrap = document.getElementById('wrap');
+  var buttons = Array.prototype.slice.call(document.querySelectorAll('[data-pick]'));
+  var valid = ['macos', 'windows', 'ubuntu'];
+
+  function detect() {
+    var p = '';
+    try { p = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || navigator.userAgent || ''; } catch (e) {}
+    p = p.toLowerCase();
+    if (p.indexOf('mac') !== -1) return 'macos';
+    if (p.indexOf('win') !== -1) return 'windows';
+    return 'ubuntu';
+  }
+  function setOS(os, remember) {
+    if (valid.indexOf(os) === -1) return;
+    wrap.setAttribute('data-os', os);
+    buttons.forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-pick') === os)); });
+    if (remember) { try { localStorage.setItem('warpdrive-os', os); } catch (e) {} }
+  }
+
+  var start = null;
+  var hash = (location.hash || '').replace('#', '');
+  if (valid.indexOf(hash) !== -1) start = hash;
+  if (!start) { try { start = localStorage.getItem('warpdrive-os'); } catch (e) {} }
+  if (valid.indexOf(start) === -1) start = detect();
+  setOS(start, false);
+
+  buttons.forEach(function (b) {
+    b.addEventListener('click', function () { setOS(b.getAttribute('data-pick'), true); });
+  });
+
+  // Copy buttons on every code block
+  Array.prototype.forEach.call(document.querySelectorAll('.code'), function (block) {
+    var pre = block.querySelector('pre');
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'copy';
+    btn.textContent = 'Copy';
+    btn.setAttribute('aria-label', 'Copy command');
+    btn.addEventListener('click', function () {
+      var text = pre.innerText;
+      function done(msg) { btn.textContent = msg; setTimeout(function () { btn.textContent = 'Copy'; }, 1500); }
+      function fallback() {
+        var r = document.createRange(); r.selectNodeContents(pre);
+        var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+        done('Selected');
+      }
+      try {
+        navigator.clipboard.writeText(text).then(function () { done('Copied'); }, fallback);
+      } catch (e) { fallback(); }
+    });
+    var bar = document.createElement('div');
+    bar.className = 'bar';
+    var label = block.querySelector('.shell');
+    if (label) bar.appendChild(label);
+    bar.appendChild(btn);
+    block.insertBefore(bar, pre);
+  });
+})();
+</script>
+
+</body>
+</html>
