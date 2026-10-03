@@ -6,5 +6,6 @@ __pycache__/
 build/
 install/
 log/
-runs/
+runs/*
+!runs/dummy/
 dist/

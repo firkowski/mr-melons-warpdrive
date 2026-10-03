@@ -267,7 +267,7 @@ td code { overflow-wrap: normal; word-break: normal; }
 <p>Everything else is supplied: the equations of motion, a Gymnasium environment, the training and evaluation scripts, the ROS 2 simulator, URDF, RViz configuration and launch file. Do not change the physics, the environment, the simulator or the evaluator.</p></section>
 <section id="setup"><div class="part-head"><h2>Setup</h2><span class="tag">macOS · Windows · Ubuntu</span></div><p>If you run into errors during setup, see <a href="#help">Troubleshooting</a> at the bottom of this page.</p>
 <p>On every system you install <strong>ROS 2 Humble from RoboStack</strong> with micromamba, into an environment called <code>ros_env</code>. RoboStack brings its own Python, so ROS, training and your policy node all use the same interpreter. Pick your system in the bar at the top; the commands below change with it.</p>
-<div class="os-block" data-os="windows"><p>On Windows, use <strong>PowerShell</strong> for every command and keep the workspace on a short path without spaces, such as <code>C:\reactor_ws</code>.</p></div>
+<div class="os-block" data-os="windows"><p>On Windows, use <strong>PowerShell</strong> for every command and put the workspace on a short path without spaces, for example directly in <code>C:\</code>.</p></div>
 <div class="os-block" data-os="macos"><p>On macOS, use the Terminal app (zsh). Both Apple Silicon and Intel Macs work.</p></div>
 <div class="os-block" data-os="ubuntu"><p>On Ubuntu (22.04 or newer, including the course VM), use a terminal (bash). If your <code>~/.bashrc</code> sources a system ROS installation (<code>/opt/ros/...</code>), remove that line: it conflicts with RoboStack.</p></div>
 <h3 class="step"><span class="n">1</span><span>Install micromamba</span></h3>
@@ -284,14 +284,14 @@ micromamba install -c conda-forge ros-dev-tools git
 rviz2</pre></div>
 <p>If an RViz window opens, ROS works. Activating <code>ros_env</code> also sets up ROS; no extra <code>source</code> of ROS itself is needed. The <a href="https://robostack.github.io/micromamba.html" target="_blank" rel="noopener">RoboStack guide</a> has more detail if a step fails.</p>
 <h3 class="step"><span class="n">3</span><span>Get the package</span></h3>
-<div class="os-block" data-os="macos ubuntu"><div class="code"><pre>mkdir -p ~/reactor_ws/src &amp;&amp; cd ~/reactor_ws/src
+<p>Go to the folder where you want to keep your work, then create the workspace there. Choose a path without spaces, and avoid folders synced by OneDrive or iCloud.</p>
+<div class="os-block" data-os="macos ubuntu"><div class="code"><pre>mkdir -p reactor_ws/src &amp;&amp; cd reactor_ws/src
 git clone https://github.com/firkowski/mr-melons-warpdrive.git melon_warpdrive
 cd melon_warpdrive</pre></div></div>
-<div class="os-block" data-os="windows"><div class="code"><pre>mkdir C:\reactor_ws\src; cd C:\reactor_ws\src
+<div class="os-block" data-os="windows"><div class="code"><pre>mkdir reactor_ws\src; cd reactor_ws\src
 git clone https://github.com/firkowski/mr-melons-warpdrive.git melon_warpdrive
 cd melon_warpdrive</pre></div></div>
-<p>This clones the <a href="https://github.com/firkowski/mr-melons-warpdrive" target="_blank" rel="noopener">assignment repository</a> into a folder called <code>melon_warpdrive</code>.</p>
-<p>The package sits in the <code>src</code> folder of a colcon workspace, <code data-os="macos ubuntu">~/reactor_ws</code> <code data-os="windows">C:\reactor_ws</code> .</p>
+<p>This creates a colcon workspace called <code>reactor_ws</code> in the current folder and clones the <a href="https://github.com/firkowski/mr-melons-warpdrive" target="_blank" rel="noopener">assignment repository</a> into its <code>src</code> folder as <code>melon_warpdrive</code>.</p>
 <h3 class="step"><span class="n">4</span><span>Install the Python dependencies</span></h3>
 <p>With <code>ros_env</code> active and in the package folder, install PyTorch (CPU) and the package with its training and plotting extras:</p>
 <div class="os-block" data-os="macos"><div class="code"><pre>python -m pip install torch
@@ -301,26 +301,34 @@ python -m pip install -e &quot;.[rl,plots]&quot; &quot;setuptools&lt;80&quot;</p
 <p><code>setuptools&lt;80</code> avoids a colcon error, <code>option --editable not recognized</code>.</p>
 <h3 class="step"><span class="n">5</span><span>Build the workspace</span></h3>
 <div class="os-block" data-os="windows"><p>First turn on <strong>Developer Mode</strong> in the Windows settings (System › For developers). It allows the symlinks that <code>--symlink-install</code> creates.</p></div>
-<div class="os-block" data-os="macos"><div class="code"><pre>cd ~/reactor_ws
+<p>From the package folder, go up to the workspace folder and build. The second line prints the workspace's full path: note it down, you need it in step 6.</p>
+<div class="os-block" data-os="macos"><div class="code"><pre>cd ../..
+pwd
 colcon build --symlink-install --packages-select melon_warpdrive
 source install/setup.zsh</pre></div></div>
-<div class="os-block" data-os="ubuntu"><div class="code"><pre>cd ~/reactor_ws
+<div class="os-block" data-os="ubuntu"><div class="code"><pre>cd ../..
+pwd
 colcon build --symlink-install --packages-select melon_warpdrive
 source install/setup.bash</pre></div></div>
-<div class="os-block" data-os="windows"><div class="code"><pre>cd C:\reactor_ws
+<div class="os-block" data-os="windows"><div class="code"><pre>cd ..\..
+Get-Location
 colcon build --symlink-install --merge-install --packages-select melon_warpdrive
 .\install\setup.ps1</pre></div></div>
-<p><code>--symlink-install</code> means edits to Python files, the URDF and the YAML take effect without rebuilding. <strong>Rebuild</strong> after adding new files, such as <code>pendulum.stl</code>.</p>
+<p><code>--symlink-install</code> means edits to Python files, the URDF and the YAML take effect without rebuilding. <strong>Rebuild</strong> after adding new files, such as <code>pendulum.stl</code>: run the same <code>colcon build</code> command from the workspace folder, then go back to the package folder with <code data-os="macos ubuntu">cd src/melon_warpdrive</code> <code data-os="windows">cd src\melon_warpdrive</code>.</p>
 <h3 class="step"><span class="n">6</span><span>In every new terminal</span></h3>
+<p>Replace <code>path/to/reactor_ws</code> with the workspace path you noted in step 5.</p>
 <div class="os-block" data-os="macos"><div class="code"><pre>micromamba activate ros_env
-source ~/reactor_ws/install/setup.zsh
-cd ~/reactor_ws/src/melon_warpdrive</pre></div></div>
+cd path/to/reactor_ws
+source install/setup.zsh
+cd src/melon_warpdrive</pre></div></div>
 <div class="os-block" data-os="ubuntu"><div class="code"><pre>micromamba activate ros_env
-source ~/reactor_ws/install/setup.bash
-cd ~/reactor_ws/src/melon_warpdrive</pre></div></div>
+cd path/to/reactor_ws
+source install/setup.bash
+cd src/melon_warpdrive</pre></div></div>
 <div class="os-block" data-os="windows"><div class="code"><pre>micromamba activate ros_env
-C:\reactor_ws\install\setup.ps1
-cd C:\reactor_ws\src\melon_warpdrive</pre></div></div>
+cd path\to\reactor_ws
+.\install\setup.ps1
+cd src\melon_warpdrive</pre></div></div>
 <p>From here on, every command is <strong>the same on all three systems</strong> and runs from the package folder.</p>
 <div class="hint"><span class="label">Before training</span><p>Training uses the CPU heavily for 10–20 minutes on a recent laptop, longer on older machines or in a virtual machine. Close other programs and stop your computer from going to sleep during a run. If you work in a virtual machine, give it 50–75 % of your RAM and most of your CPU cores.</p></div></section>
 <section id="cad"><div class="part-head"><span class="tag">Part 1</span><span class="points">25 points</span></div><h2>Recover the missing pendulum</h2><p>The reactor's pendulum model is corrupted; only its blueprint survived. Rebuild the part from the blueprint below, assign the specified material, extract its mass properties for the simulator and add it to the visual robot model.</p>
@@ -359,17 +367,15 @@ cd C:\reactor_ws\src\melon_warpdrive</pre></div></div>
 <ol class="list"><li>declare the node parameters <code>model_file</code> and <code>parameters_file</code>, and load the policy and the parameter file saved by a training run;</li><li>create the publisher and the subscription with a suitable QoS (Hint: the QoS must match between the subscriber and publisher);</li><li>look up the joints by name instead of relying on their order in the message;</li><li>give the policy exactly the input it saw during training, and use deterministic inference (refer to <a href="https://stable-baselines3.readthedocs.io/en/master/modules/sac.html" target="_blank" rel="noopener">Stable Baselines3's SAC documentation</a> for details);</li><li>convert the policy's action to amperes and publish it;</li><li>publish zero current if a message is incomplete or contains non-finite values.</li></ol>
 <p>The node is installed as the executable <code>controller</code>.</p></div></article>
 <h3 id="ros-dummy">Test the loop with a dummy policy</h3>
-<p>You do not need a trained controller to test your node. The training script can save an untrained policy with the correct input and output sizes. It needs your completed parameter file from Part 1; the reward can still be the empty stub.</p>
-<article class="task"><header><span class="id">Task 2.2</span><span>Closed loop with a dummy policy</span></header><div class="body"><p>Create the dummy policy:</p>
-<div class="code"><pre>python -m warpdrive.train --steps 1 --out runs/dummy</pre></div>
-<p>Open three terminals, each set up as in <a href="#setup">setup step 6</a>.</p>
-<div class="code"><span class="shell">Terminal 1 · simulator, robot_state_publisher, RViz</span><pre>ros2 launch melon_warpdrive reactor.launch.py &quot;parameters_file:=$PWD/runs/dummy/reactor_params.yaml&quot;</pre></div>
-<div class="code"><span class="shell">Terminal 2 · your policy node</span><pre>ros2 run melon_warpdrive controller --ros-args -p &quot;model_file:=$PWD/runs/dummy/policy.zip&quot; -p &quot;parameters_file:=$PWD/runs/dummy/reactor_params.yaml&quot;</pre></div>
+<p>You do not need a trained controller to test your node. The package includes a safe dummy policy, <code>runs/dummy/policy.zip</code>: an untrained network with the correct input and output sizes. It cannot swing the pendulum up, but it lets you check that the loop runs. The simulator still needs your completed parameter file from Part 1.</p>
+<article class="task"><header><span class="id">Task 2.2</span><span>Closed loop with a dummy policy</span></header><div class="body"><p>Open three terminals, each set up as in <a href="#setup">setup step 6</a>.</p>
+<div class="code"><span class="shell">Terminal 1 · simulator, robot_state_publisher, RViz</span><pre>ros2 launch melon_warpdrive reactor.launch.py &quot;parameters_file:=$PWD/config/reactor_params.yaml&quot;</pre></div>
+<div class="code"><span class="shell">Terminal 2 · your policy node</span><pre>ros2 run melon_warpdrive controller --ros-args -p &quot;model_file:=$PWD/runs/dummy/policy.zip&quot; -p &quot;parameters_file:=$PWD/config/reactor_params.yaml&quot;</pre></div>
 <div class="code"><span class="shell">Terminal 3 · reset and inspect</span><pre>ros2 service call /reactor/reset std_srvs/srv/Trigger &quot;{}&quot;
 ros2 topic echo /reactor/current_cmd
 ros2 topic hz /reactor/current_cmd</pre></div>
 <p>With all nodes running, take a screenshot of <code>rqt_graph</code> that clearly shows the nodes and their topics.</p>
-<p>An untrained policy only makes the pendulum twitch; the point is that the loop runs. Keep this setup: from now on you can watch every policy you train by pointing <code>model_file</code> at it.</p></div></article>
+<p>The dummy policy does not control the pendulum; the point is that the loop runs. Keep this setup: from now on you can watch every policy you train by pointing <code>model_file</code> and <code>parameters_file</code> at its run folder.</p></div></article>
 <p>With the launch file and your policy node running, <code>rqt_graph</code> should look similar to the one below. Compared with the graph from Task 1.3, your node <code>/warpdrive_policy</code> now subscribes to <code>/joint_states</code> and publishes <code>/reactor/current_cmd</code> back to the simulator, closing the loop.</p>
 <figure><div class="plate wide dark"><img src="images/rqt_graph2.png" alt="rqt_graph: /warpdrive_simulator publishes /joint_states to /robot_state_publisher and to /warpdrive_policy; /warpdrive_policy publishes /reactor/current_cmd back to the simulator; robot_state_publisher publishes /tf and /tf_static to RViz's transform listener." width="2568" height="486"></div><figcaption>rqt_graph with the simulator, robot_state_publisher, RViz and your policy node running.</figcaption></figure>
 <div class="check"><span class="label">Checkpoint</span><p>Your node runs without errors, publishes a current in amperes within ±<code>current_limit</code> for every joint-state message (about 100 Hz), and publishes zero current for a malformed message. You can name the direction of each topic in the loop.</p></div></section>

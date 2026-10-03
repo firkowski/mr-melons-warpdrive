@@ -173,28 +173,22 @@ The simulator holds the last command for at most 100 ms; after that it applies z
 
 ### Test the loop with a dummy policy
 
-You do not need a trained controller to test your node. The training script can save an untrained policy with the correct input and output sizes. It needs your completed parameter file from Part 1; the reward can still be the empty stub.
+You do not need a trained controller to test your node. The package includes a safe dummy policy, `runs/dummy/policy.zip`: an untrained network with the correct input and output sizes. It cannot swing the pendulum up, but it lets you check that the loop runs. The simulator still needs your completed parameter file from Part 1.
 
 > **Task 2.2 - Closed loop with a dummy policy**
->
-> Create the dummy policy:
->
-> ```
-> python -m warpdrive.train --steps 1 --out runs/dummy
-> ```
 >
 > Open three terminals, each set up as described in `README.md` ("Every new terminal").
 >
 > *Terminal 1 · simulator, robot_state_publisher, RViz*
 >
 > ```
-> ros2 launch melon_warpdrive reactor.launch.py "parameters_file:=$PWD/runs/dummy/reactor_params.yaml"
+> ros2 launch melon_warpdrive reactor.launch.py "parameters_file:=$PWD/config/reactor_params.yaml"
 > ```
 >
 > *Terminal 2 · your policy node*
 >
 > ```
-> ros2 run melon_warpdrive controller --ros-args -p "model_file:=$PWD/runs/dummy/policy.zip" -p "parameters_file:=$PWD/runs/dummy/reactor_params.yaml"
+> ros2 run melon_warpdrive controller --ros-args -p "model_file:=$PWD/runs/dummy/policy.zip" -p "parameters_file:=$PWD/config/reactor_params.yaml"
 > ```
 >
 > *Terminal 3 · reset and inspect*
@@ -207,7 +201,7 @@ You do not need a trained controller to test your node. The training script can 
 >
 > With all nodes running, take a screenshot of `rqt_graph` that clearly shows the nodes and their topics.
 >
-> An untrained policy only makes the pendulum twitch; the point is that the loop runs. Keep this setup: from now on you can watch every policy you train by pointing `model_file` at it.
+> The dummy policy does not control the pendulum; the point is that the loop runs. Keep this setup: from now on you can watch every policy you train by pointing `model_file` and `parameters_file` at its run folder.
 
 With the launch file and your policy node running, `rqt_graph` should look similar to the one below. Compared with the graph from Task 1.3, your node `/warpdrive_policy` now subscribes to `/joint_states` and publishes `/reactor/current_cmd` back to the simulator, closing the loop.
 

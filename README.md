@@ -72,18 +72,21 @@ system ROS installation on top of it. See the
 
 ### 1.3 Get the package and install the Python dependencies
 
+Go to the folder where you want to keep your work; the workspace is created there. Choose a path
+without spaces, and avoid folders synced by OneDrive or iCloud.
+
 macOS and Ubuntu:
 
 ```sh
-mkdir -p ~/reactor_ws/src && cd ~/reactor_ws/src
+mkdir -p reactor_ws/src && cd reactor_ws/src
 git clone https://github.com/firkowski/mr-melons-warpdrive.git melon_warpdrive
 cd melon_warpdrive
 ```
 
-Windows (use a short path without spaces):
+Windows (use a short path without spaces, for example directly in `C:\`):
 
 ```powershell
-mkdir C:\reactor_ws\src; cd C:\reactor_ws\src
+mkdir reactor_ws\src; cd reactor_ws\src
 git clone https://github.com/firkowski/mr-melons-warpdrive.git melon_warpdrive
 cd melon_warpdrive
 ```
@@ -104,14 +107,17 @@ python -m pip install -e ".[rl,plots]" "setuptools<80"
 
 ### 1.4 Build the workspace
 
-macOS and Ubuntu, from `~/reactor_ws`:
+Go from the package folder up to the workspace folder (`cd ../..`; Windows: `cd ..\..`) and note
+its full path, printed by `pwd` (Windows: `Get-Location`). You need it in every new terminal.
+
+macOS and Ubuntu, from the workspace folder:
 
 ```sh
 colcon build --symlink-install --packages-select melon_warpdrive
 source install/setup.zsh     # macOS (zsh); on Ubuntu: source install/setup.bash
 ```
 
-Windows, from `C:\reactor_ws`. Turn on **Developer Mode** in the Windows settings first; it allows
+Windows, from the workspace folder. Turn on **Developer Mode** in the Windows settings first; it allows
 the symlinks that `--symlink-install` creates.
 
 ```powershell
@@ -120,14 +126,18 @@ colcon build --symlink-install --merge-install --packages-select melon_warpdrive
 ```
 
 `--symlink-install` means edits to Python files, the URDF and the YAML take effect without
-rebuilding. **Rebuild** after adding new files, such as `pendulum.stl`.
+rebuilding. **Rebuild** after adding new files, such as `pendulum.stl`: run the same `colcon build`
+command from the workspace folder, then `cd src/melon_warpdrive` back into the package.
 
 ### Every new terminal
 
+Replace `path/to/reactor_ws` with the workspace path you noted when building.
+
 ```sh
 micromamba activate ros_env
-source ~/reactor_ws/install/setup.zsh      # macOS; Ubuntu: setup.bash; Windows: C:\reactor_ws\install\setup.ps1
-cd ~/reactor_ws/src/melon_warpdrive        # Windows: cd C:\reactor_ws\src\melon_warpdrive
+cd path/to/reactor_ws              # Windows: cd path\to\reactor_ws
+source install/setup.zsh           # macOS; Ubuntu: source install/setup.bash; Windows: .\install\setup.ps1
+cd src/melon_warpdrive             # Windows: cd src\melon_warpdrive
 ```
 
 All commands below are the same on every system.
@@ -153,24 +163,22 @@ All commands below are the same on every system.
 
 ## 3. Test the ROS loop with a dummy policy
 
-Create an untrained policy (needs the completed parameter file; the reward may still be the stub):
-
-```sh
-python -m warpdrive.train --steps 1 --out runs/dummy
-```
+The package includes a safe dummy policy, `runs/dummy/policy.zip`: an untrained network with the
+correct input and output sizes. It cannot swing the pendulum up; it only lets you check that the
+loop runs. The simulator still needs your completed `config/reactor_params.yaml`.
 
 Use three terminals, each set up as in “Every new terminal”.
 
 Terminal 1, simulator, `robot_state_publisher` and RViz:
 
 ```sh
-ros2 launch melon_warpdrive reactor.launch.py "parameters_file:=$PWD/runs/dummy/reactor_params.yaml"
+ros2 launch melon_warpdrive reactor.launch.py "parameters_file:=$PWD/config/reactor_params.yaml"
 ```
 
 Terminal 2, your policy node:
 
 ```sh
-ros2 run melon_warpdrive controller --ros-args -p "model_file:=$PWD/runs/dummy/policy.zip" -p "parameters_file:=$PWD/runs/dummy/reactor_params.yaml"
+ros2 run melon_warpdrive controller --ros-args -p "model_file:=$PWD/runs/dummy/policy.zip" -p "parameters_file:=$PWD/config/reactor_params.yaml"
 ```
 
 Terminal 3, reset the reactor and inspect the commands:
