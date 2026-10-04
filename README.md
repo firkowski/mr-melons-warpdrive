@@ -163,9 +163,9 @@ All commands below are the same on every system.
 
 ## 3. Test the ROS loop with a dummy policy
 
-The package includes a safe dummy policy, `runs/dummy/policy.zip`: an untrained network with the
-correct input and output sizes. It cannot swing the pendulum up; it only lets you check that the
-loop runs. The simulator still needs your completed `config/reactor_params.yaml`.
+The package includes a safe dummy policy, `runs/dummy/policy.zip`: a policy with the
+correct input and output sizes. It turns the arm at about 1 rad/s and does not swing the pendulum up, so
+you can see in RViz that your node's commands reach the simulator. The simulator still needs your completed `config/reactor_params.yaml`.
 
 Use three terminals, each set up as in “Every new terminal”.
 

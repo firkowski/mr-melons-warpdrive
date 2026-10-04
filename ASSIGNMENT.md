@@ -173,7 +173,7 @@ The simulator holds the last command for at most 100 ms; after that it applies z
 
 ### Test the loop with a dummy policy
 
-You do not need a trained controller to test your node. The package includes a safe dummy policy, `runs/dummy/policy.zip`: an untrained network with the correct input and output sizes. It cannot swing the pendulum up, but it lets you check that the loop runs. The simulator still needs your completed parameter file from Part 1.
+You do not need a trained controller to test your node. The package includes a safe dummy policy, `runs/dummy/policy.zip`: a policy with the correct input and output sizes. It turns the arm at about 1 rad/s and does not swing the pendulum up, so you can see in RViz that your node's commands reach the simulator. The simulator still needs your completed parameter file from Part 1.
 
 > **Task 2.2 - Closed loop with a dummy policy**
 >
@@ -201,7 +201,7 @@ You do not need a trained controller to test your node. The package includes a s
 >
 > With all nodes running, take a screenshot of `rqt_graph` that clearly shows the nodes and their topics.
 >
-> The dummy policy does not control the pendulum; the point is that the loop runs. Keep this setup: from now on you can watch every policy you train by pointing `model_file` and `parameters_file` at its run folder.
+> With the dummy policy the arm should turn steadily at about 1 rad/s; the pendulum is not swung up. If the arm stays still, your node is not publishing. Keep this setup: from now on you can watch every policy you train by pointing `model_file` and `parameters_file` at its run folder.
 
 With the launch file and your policy node running, `rqt_graph` should look similar to the one below. Compared with the graph from Task 1.3, your node `/warpdrive_policy` now subscribes to `/joint_states` and publishes `/reactor/current_cmd` back to the simulator, closing the loop.
 

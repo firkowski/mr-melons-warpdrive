@@ -1,0 +1,19 @@
+# Approximate pendulum values (one significant digit) so you can test the setup and the ROS loop
+# before Part 1. Do not use them for the assignment: enter your own CAD values in config/reactor_params.yaml.
+arm_length: 0.25
+arm_inertia: 0.0129095
+pendulum_mass: 3.0
+pendulum_com: 0.2
+pendulum_ixx: 0.02
+pendulum_iyy: 0.02
+pendulum_izz: 0.001
+arm_damping: 0.01
+pendulum_damping: 0.001
+torque_constant: 2.0
+current_limit: 5.0
+gravity: 9.81
+control_dt: 0.01
+physics_substeps: 5
+episode_seconds: 10.0
+arm_speed_limit: 40.0
+pendulum_speed_limit: 80.0
