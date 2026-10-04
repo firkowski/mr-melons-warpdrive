@@ -1,0 +1,17 @@
+arm_length: 0.25
+arm_inertia: 0.0129095
+pendulum_mass: 2.5613074
+pendulum_com: 0.15
+pendulum_ixx: 0.02279824425
+pendulum_iyy: 0.02198020573
+pendulum_izz: 0.00129274144
+arm_damping: 0.01
+pendulum_damping: 0.001
+torque_constant: 2.0
+current_limit: 5.0
+gravity: 9.81
+control_dt: 0.01
+physics_substeps: 5
+episode_seconds: 10.0
+arm_speed_limit: 40.0
+pendulum_speed_limit: 80.0

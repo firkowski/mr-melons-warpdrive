@@ -1,0 +1,7 @@
+{
+  "observation": "v1:sin(theta),cos(theta),sin(alpha),cos(alpha),theta_dot/10,alpha_dot/10",
+  "action": "current/current_limit",
+  "algorithm": "SAC",
+  "seed": 7,
+  "requested_steps": 50000
+}
