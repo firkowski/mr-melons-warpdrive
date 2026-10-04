@@ -1,4 +1,4 @@
-# Mr. Melon’s Warpdrive — student package
+# Mr. Melon’s Warpdrive - student package
 
 Read `ASSIGNMENT.md` first for the tasks and grading. This file covers setup and the commands
 for each step. The assignment website shows the same steps with commands for macOS, Windows and
