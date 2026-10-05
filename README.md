@@ -142,7 +142,22 @@ cd src/melon_warpdrive             # Windows: cd src\melon_warpdrive
 
 All commands below are the same on every system.
 
+### Check the installation
+
+From the package folder, start the simulator and RViz with the approximate parameters that come
+with the dummy policy:
+
+```sh
+ros2 launch melon_warpdrive reactor.launch.py "parameters_file:=$PWD/runs/dummy/reactor_params.yaml"
+```
+
+RViz should open and show the reactor with a glitched-out pendulum at the tip of the arm. The glitch
+is intended: you replace the mesh with your own model in Part 1. Stop the launch with Ctrl+C.
+
 ## 2. CAD values and visual model
+
+`urdf/model/pendulum.stl` is a glitched-out placeholder, so you can test the ROS loop before your
+CAD model is finished. Replace it with your own export.
 
 1. Fill in the five `null` values in `config/reactor_params.yaml`.
 2. Check that the file loads:
@@ -159,13 +174,15 @@ All commands below are the same on every system.
    ros2 launch melon_warpdrive reactor.launch.py "parameters_file:=$PWD/config/reactor_params.yaml"
    ```
 
-   The pendulum should hang from the arm tip and swing about its pivot.
+   Your pendulum (not the glitched placeholder) should hang from the arm tip and swing about its pivot.
 
 ## 3. Test the ROS loop with a dummy policy
 
 The package includes a safe dummy policy, `runs/dummy/policy.zip`: a policy with the
 correct input and output sizes. It turns the arm at about 1 rad/s and does not swing the pendulum up, so
-you can see in RViz that your node's commands reach the simulator. The simulator still needs your completed `config/reactor_params.yaml`.
+you can see in RViz that your node's commands reach the simulator. The commands below use your completed `config/reactor_params.yaml`. If you have not finished Part 1
+yet, you can use the approximate `runs/dummy/reactor_params.yaml` instead; switch to your own values
+before you train.
 
 Use three terminals, each set up as in “Every new terminal”.
 
@@ -181,11 +198,20 @@ Terminal 2, your policy node:
 ros2 run melon_warpdrive controller --ros-args -p "model_file:=$PWD/runs/dummy/policy.zip" -p "parameters_file:=$PWD/config/reactor_params.yaml"
 ```
 
-Terminal 3, reset the reactor and inspect the commands:
+Terminal 3, reset the reactor:
 
 ```sh
 ros2 service call /reactor/reset std_srvs/srv/Trigger "{}"
+```
+
+Then inspect the commands. `ros2 topic echo` and `ros2 topic hz` keep running until you stop them
+with Ctrl+C, so run them one after the other, or each in its own terminal:
+
+```sh
 ros2 topic echo /reactor/current_cmd
+```
+
+```sh
 ros2 topic hz /reactor/current_cmd
 ```
 
@@ -194,8 +220,11 @@ for 100 ms. To test the simulator without a policy, publish a constant current a
 beyond `current_limit` are clipped):
 
 ```sh
-ros2 topic pub -r 50 /reactor/current_cmd std_msgs/msg/Float64 "{data: 1.0}"
+ros2 topic pub -r 50 /reactor/current_cmd std_msgs/msg/Float64 "{data: 0.1}"
 ```
+
+Larger currents spin the arm up until it exceeds its speed limit (at 1 A after about 8 s); the
+simulator then pauses until you call `/reactor/reset`.
 
 ## 4. Reward, training and evaluation
 
@@ -216,6 +245,9 @@ Training 200,000 steps takes about 10–20 minutes on a recent laptop CPU (longe
 | `contract.json` | observation/action definition, seed and step count |
 | `evaluations.npz`, `training.monitor.csv` | learning curves |
 
+`best_model.zip` and `evaluations.npz` are first written at the periodic evaluation after 10,000
+steps; a shorter test run only writes `policy.zip`, so use that file in the commands below.
+
 Use a different `--out` folder for each run you want to keep (and `--steps N` to change the training length). Watch a trained policy in RViz with
 the commands from step 3, pointing `model_file` and `parameters_file` at `runs/policy/`.
 
@@ -232,6 +264,7 @@ balanced (`upright(state)`) at every control sample of the final three seconds. 
 
 ```sh
 python tools/plot_trace.py runs/policy/evaluation/trajectory.csv --out runs/policy/evaluation/trajectory.png
+python tools/plot_trace.py runs/zero_current/trajectory.csv --out runs/zero_current/trajectory.png
 ```
 
 ## Troubleshooting
@@ -247,7 +280,7 @@ python tools/plot_trace.py runs/policy/evaluation/trajectory.csv --out runs/poli
 | `NotImplementedError: Task 2.1: ...` from the policy node | A TODO in `warpdrive/policy_node.py` is not finished yet; the message says which part. |
 | Policy node runs without errors, but `ros2 topic hz /reactor/current_cmd` shows nothing | The current message is built but never published. Check `PolicyNode.publish_current`. |
 | Simulator log: `Speed limit exceeded; paused` | The arm or pendulum spun too fast. Call `/reactor/reset`. |
-| Pendulum mesh missing in RViz | `pendulum.stl` was added after the last build. Rebuild and re-source. |
+| RViz still shows the glitched placeholder pendulum | Your export is not at `urdf/model/pendulum.stl` or has a different file name. Save it there (in mm), rebuild and re-source. |
 | `colcon build`: `option --editable not recognized` | setuptools is too new for colcon: `python -m pip install "setuptools<80"`. |
 | Windows: `colcon build` fails creating symlinks | Turn on Developer Mode, or build without `--symlink-install` and rebuild after every edit. |
 | Windows: `setup.ps1 cannot be loaded because running scripts is disabled` | Run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once. |

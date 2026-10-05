@@ -23,7 +23,7 @@ pluggy==1.6.0
 pyparsing==3.3.3
 pytest==9.1.1
 python-dateutil==2.9.0.post0
-setuptools==84.0.0
+setuptools==84.0.0   # for colcon build, install setuptools<80 instead (see README.md)
 six==1.17.0
 stable_baselines3==2.9.0
 sympy==1.14.0

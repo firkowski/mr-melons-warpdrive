@@ -27,7 +27,9 @@
 
   <link name="pendulum_link">
     <visual>
-      <!-- TODO: Specify the xyz translation of the pendulum's link (i.e. the pivot) wrt. to the center of the STL model -->
+      <!-- TODO: Set xyz to the position of your STL's origin relative to the pivot (this link's origin),
+           in metres, so that the pendulum points along +z at alpha = 0. The value depends on where
+           you placed the origin of your CAD part. -->
       <origin xyz="0 0 0" rpy="0 0 0"/> 
       <geometry><mesh filename="package://melon_warpdrive/urdf/model/pendulum.stl" scale="0.001 0.001 0.001"/></geometry>
       <material name="titanium"/>

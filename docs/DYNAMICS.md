@@ -6,9 +6,9 @@ The fixed motor axis is world +z. At $\theta=0$ the arm points along +x. Its len
 $$p_C=(r,-l\sin\alpha,l\cos\alpha).$$
 The pendulum COM must lie on its local z axis. Its COM inertia is diagonal in the specified body frame: $\operatorname{diag}(I_x,I_y,I_z)$. This includes a symmetric rectangular rod, with potentially different $I_x$ and $I_y$. An asymmetric part with nonzero products of inertia or an off-axis COM requires a different model or an explicitly justified approximation.
 
-$J_a$ is the combined arm-group inertia about the vertical motor axis, **excluding the pendulum**. It includes any rigidly attached rotating hardware; a stationary motor housing is not part of it.$J_a$ (`arm_inertia`) and $r$ (`arm_length`) are supplied in `config/reactor_params.yaml`.
+$J_a$ is the combined arm-group inertia about the vertical motor axis, **excluding the pendulum**. It includes any rigidly attached rotating hardware; a stationary motor housing is not part of it. $J_a$ (`arm_inertia`) and $r$ (`arm_length`) are supplied in `config/reactor_params.yaml`.
 
-No small-angle approximation is used in the supplied swing-up dynamics. Current tracking is ideal; torque is $\tau=K_{\tau,\mathrm{out}}i$. The effective output torque constant includesany chosen gearing convention. No voltage, inductance or inner-loop servo model is included.
+No small-angle approximation is used in the supplied swing-up dynamics. Current tracking is ideal; torque is $\tau=K_{\tau,\mathrm{out}}i$. The effective output torque constant includes any chosen gearing convention. No voltage, inductance or inner-loop servo model is included.
 
 ## Equations
 

@@ -42,7 +42,7 @@ Everything else is supplied: the equations of motion, a Gymnasium environment, t
 ## Setup
 
 Follow `README.md` to install ROS 2 Humble with RoboStack (macOS, Windows or Ubuntu), build the
-workspace and set up each new terminal. The assignment website shows the same steps with commands
+workspace, set up each new terminal and check the installation. The assignment website shows the same steps with commands
 for each system.
 
 ## Part 1: Recover the missing pendulum (25 points)
@@ -96,7 +96,7 @@ The pendulum rotates about the centre of one of its end bores; that bore is the 
 
 ### Visual model
 
-The simulator only needs the numbers from Task 1.2. RViz, however, draws the robot from a URDF file, which describes its links, joints and meshes. The pendulum's mesh is missing. [For more about URDF, see the ROS documentation](https://docs.ros.org/en/humble/Tutorials/Intermediate/URDF/URDF-Main.html).
+The simulator only needs the numbers from Task 1.2. RViz, however, draws the robot from a URDF file, which describes its links, joints and meshes. The repository ships a glitched-out placeholder, `urdf/model/pendulum.stl`, so that RViz already shows a pendulum and you can test the ROS loop before your CAD model is finished. Task 1.3 replaces it with your own export. [For more about URDF, see the ROS documentation](https://docs.ros.org/en/humble/Tutorials/Intermediate/URDF/URDF-Main.html).
 
 > **Task 1.3 - Visual model**
 >
@@ -112,7 +112,7 @@ The simulator only needs the numbers from Task 1.2. RViz, however, draws the rob
 
 > **Checkpoint**
 >
-> The parameter file loads without errors. With no controller running, RViz shows the pendulum hanging from the tip of the arm and rotating about its pivot.
+> The parameter file loads without errors. With no controller running, RViz shows your pendulum (not the glitched placeholder) hanging from the tip of the arm and rotating about its pivot.
 
 ## Part 2: Reconnect the reactor through ROS 2 (30 points)
 
@@ -173,7 +173,7 @@ The simulator holds the last command for at most 100 ms; after that it applies z
 
 ### Test the loop with a dummy policy
 
-You do not need a trained controller to test your node. The package includes a safe dummy policy, `runs/dummy/policy.zip`: a policy with the correct input and output sizes. It turns the arm at about 1 rad/s and does not swing the pendulum up, so you can see in RViz that your node's commands reach the simulator. The simulator still needs your completed parameter file from Part 1.
+You do not need a trained controller to test your node. The package includes a safe dummy policy, `runs/dummy/policy.zip`: a policy with the correct input and output sizes. It turns the arm at about 1 rad/s and does not swing the pendulum up, so you can see in RViz that your node's commands reach the simulator. The commands below use your completed parameter file from Part 1. If you have not finished Part 1 yet, you can use the approximate `runs/dummy/reactor_params.yaml` instead; switch to your own values before you train.
 
 > **Task 2.2 - Closed loop with a dummy policy**
 >
@@ -191,15 +191,23 @@ You do not need a trained controller to test your node. The package includes a s
 > ros2 run melon_warpdrive controller --ros-args -p "model_file:=$PWD/runs/dummy/policy.zip" -p "parameters_file:=$PWD/config/reactor_params.yaml"
 > ```
 >
-> *Terminal 3 · reset and inspect*
+> *Terminal 3 · reset the reactor*
 >
 > ```
 > ros2 service call /reactor/reset std_srvs/srv/Trigger "{}"
+> ```
+>
+> *Inspect the commands.* `ros2 topic echo` and `ros2 topic hz` keep running until you stop them with Ctrl+C, so run them one after the other in Terminal 3, or each in its own terminal:
+>
+> ```
 > ros2 topic echo /reactor/current_cmd
+> ```
+>
+> ```
 > ros2 topic hz /reactor/current_cmd
 > ```
 >
-> With all nodes running, take a screenshot of `rqt_graph` that clearly shows the nodes and their topics.
+> With all nodes running, start `rqt_graph` in another terminal and take a screenshot that clearly shows the nodes and their topics.
 >
 > With the dummy policy the arm should turn steadily at about 1 rad/s; the pendulum is not swung up. If the arm stays still, your node is not publishing. Keep this setup: from now on you can watch every policy you train by pointing `model_file` and `parameters_file` at its run folder.
 
@@ -271,6 +279,8 @@ The state is x = [θ, α, θ̇, α̇], with α = 0 upright and α = π hanging d
 > | `contract.json` | observation and action definition, seed, step count |
 > | `evaluations.npz`, `training.monitor.csv` | learning curves |
 >
+> `best_model.zip` and `evaluations.npz` are first written at the periodic evaluation after 10,000 steps. A shorter test run only writes `policy.zip`; use that file in the commands that follow.
+>
 > Watch the trained policy in RViz with your setup from Task 2.2, pointing `model_file` and `parameters_file` at `runs/policy/`. Use a new `--out` folder for every run you want to keep.
 
 > **Task 3.3 - Evaluation**
@@ -286,6 +296,7 @@ The state is x = [θ, α, θ̇, α̇], with α = 0 upright and α = π hanging d
 >
 > ```
 > python tools/plot_trace.py runs/policy/evaluation/trajectory.csv --out runs/policy/evaluation/trajectory.png
+> python tools/plot_trace.py runs/zero_current/trajectory.csv --out runs/zero_current/trajectory.png
 > ```
 
 > **Checkpoint: Success criterion**

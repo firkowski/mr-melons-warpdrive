@@ -20,7 +20,9 @@ class PolicyNode(Node):
         path = None  # replace with your parameter
 
         # TODO: Declare a node parameter 'parameters_file' that stores the .yaml file with the system parameters
-        #       (the reactor_params.yaml copy saved next to the policy in `runs/policy/`)
+        #       (for a trained policy, the reactor_params.yaml copy saved next to it in `runs/policy/`;
+        #       for the dummy policy, your completed `config/reactor_params.yaml`, or the approximate
+        #       `runs/dummy/reactor_params.yaml` before you have finished Part 1)
         config = None  # replace with your parameter
         if path is None or config is None:
             raise NotImplementedError("Task 2.1: declare the 'model_file' and 'parameters_file' node parameters "
