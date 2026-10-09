@@ -44,7 +44,10 @@ macOS and Ubuntu:
 "${SHELL}" <(curl -L micro.mamba.pm/install.sh)
 ```
 
-(On macOS, `brew install micromamba` also works.)
+(On macOS, `brew install micromamba` also works; then run `micromamba shell init -s zsh` once, because
+Homebrew does not set up the shell for `micromamba activate`. On Apple Silicon, make sure the
+terminal does not run under Rosetta: `uname -m` must print `arm64`, otherwise micromamba installs
+Intel packages.)
 
 Windows (PowerShell):
 
@@ -59,7 +62,8 @@ Close and reopen the terminal afterwards.
 
 Go to the folder where you want to keep your work; the workspace is created there. Choose a path
 without spaces, and avoid folders synced by OneDrive or iCloud. If `git` is not installed yet,
-download the repository as a ZIP from GitHub and unpack it to `reactor_ws/src/melon_warpdrive`.
+download the repository as a ZIP from GitHub (*Code › Download ZIP*), unpack it into
+`reactor_ws/src` and rename the unpacked folder `mr-melons-warpdrive-main` to `melon_warpdrive`.
 
 macOS and Ubuntu:
 
@@ -79,18 +83,16 @@ cd melon_warpdrive
 
 ### 1.3 Create the environment
 
-From the package folder, the same on all systems:
+From the package folder:
 
 ```sh
 micromamba create -f environment.yml
 micromamba activate ros_env
-python --version
-rviz2
-rqt_graph
+rviz2 && rqt_graph                 # Windows PowerShell: rviz2; rqt_graph
 ```
 
-The first command downloads a few GB and can take a while. `python --version` should print 3.12;
-an RViz window and an empty rqt_graph window should open (close them again). Activating
+The first command downloads a few GB and can take a while. Then an RViz window opens; close it,
+and an empty rqt_graph window opens; close that too. Activating
 `ros_env` also sets up ROS; never source a system ROS installation on top of it.
 
 Install packages only with micromamba, not with pip, so that nothing replaces the versions the ROS
@@ -146,7 +148,7 @@ ros2 launch melon_warpdrive reactor.launch.py "parameters_file:=$PWD/runs/dummy/
 RViz should open and show the reactor with a glitched-out pendulum at the tip of the arm. The glitch
 is intended: you replace the mesh with your own model in Part 1. While the launch is running, run
 `rqt_graph` in a second terminal (set up as above); it should show the simulator and
-`robot_state_publisher`. Then stop the launch with Ctrl+C.
+`robot_state_publisher` (if the graph looks incomplete, refresh it). Then stop the launch with Ctrl+C.
 
 ## 2. CAD values and visual model
 

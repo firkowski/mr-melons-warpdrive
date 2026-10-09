@@ -268,11 +268,11 @@ td code { overflow-wrap: normal; word-break: normal; }
 <section id="setup"><div class="part-head"><h2>Setup</h2><span class="tag">macOS · Windows · Ubuntu</span></div><p>If you run into errors during setup, see <a href="#help">Troubleshooting</a> at the bottom of this page.</p>
 <p>On every system you install <strong>ROS 2 Humble from RoboStack</strong> with micromamba, into an environment called <code>ros_env</code>. The environment is defined in the repository's <code>environment.yml</code> and contains everything the assignment needs: ROS 2, Python 3.12, PyTorch (CPU), Stable-Baselines3, Gymnasium and matplotlib. ROS, training and your policy node all use the same interpreter. Pick your system in the bar at the top; the commands below change with it.</p>
 <div class="os-block" data-os="windows"><p>On Windows, use <strong>PowerShell</strong> for every command and put the workspace on a short path without spaces, for example directly in <code>C:\</code>.</p></div>
-<div class="os-block" data-os="macos"><p>On macOS, use the Terminal app (zsh). Both Apple Silicon and Intel Macs work.</p></div>
+<div class="os-block" data-os="macos"><p>On macOS, use the Terminal app (zsh). Both Apple Silicon and Intel Macs work. On Apple Silicon, make sure the terminal does not run under Rosetta: <code>uname -m</code> must print <code>arm64</code>, otherwise micromamba installs Intel packages.</p></div>
 <div class="os-block" data-os="ubuntu"><p>On Ubuntu (22.04 or newer, including the course VM), use a terminal (bash). If your <code>~/.bashrc</code> sources a system ROS installation (<code>/opt/ros/...</code>), remove that line: it conflicts with RoboStack.</p></div>
 <h3 class="step"><span class="n">1</span><span>Install micromamba</span></h3>
 <div class="os-block" data-os="macos ubuntu"><div class="code"><pre>&quot;${SHELL}&quot; &lt;(curl -L micro.mamba.pm/install.sh)</pre></div></div>
-<div class="os-block" data-os="macos"><p>With Homebrew, <code>brew install micromamba</code> also works.</p></div>
+<div class="os-block" data-os="macos"><p>With Homebrew, <code>brew install micromamba</code> also works; then run <code>micromamba shell init -s zsh</code> once, because Homebrew does not set up the shell for <code>micromamba activate</code>.</p></div>
 <div class="os-block" data-os="windows"><div class="code"><pre>Invoke-Expression ((Invoke-WebRequest -Uri https://micro.mamba.pm/install.ps1 -UseBasicParsing).Content)</pre></div></div>
 <div class="os-block" data-os="windows"><p>Windows also needs <strong>Visual Studio 2022 with C++ support</strong> (workload “Desktop development with C++”).</p></div>
 <p>Close and reopen the terminal afterwards.</p>
@@ -284,15 +284,16 @@ cd melon_warpdrive</pre></div></div>
 <div class="os-block" data-os="windows"><div class="code"><pre>mkdir reactor_ws\src; cd reactor_ws\src
 git clone https://github.com/firkowski/mr-melons-warpdrive.git melon_warpdrive
 cd melon_warpdrive</pre></div></div>
-<p>This creates a colcon workspace called <code>reactor_ws</code> in the current folder and clones the <a href="https://github.com/firkowski/mr-melons-warpdrive" target="_blank" rel="noopener">assignment repository</a> into its <code>src</code> folder as <code>melon_warpdrive</code>. If <code>git</code> is not installed yet, download the repository as a ZIP from GitHub instead and unpack it to <code>reactor_ws/src/melon_warpdrive</code>.</p>
+<p>This creates a colcon workspace called <code>reactor_ws</code> in the current folder and clones the <a href="https://github.com/firkowski/mr-melons-warpdrive" target="_blank" rel="noopener">assignment repository</a> into its <code>src</code> folder as <code>melon_warpdrive</code>. If <code>git</code> is not installed yet, download the repository as a ZIP from GitHub instead (<em>Code › Download ZIP</em>), unpack it into <code>reactor_ws/src</code> and rename the unpacked folder <code>mr-melons-warpdrive-main</code> to <code>melon_warpdrive</code>.</p>
 <h3 class="step"><span class="n">3</span><span>Create the environment</span></h3>
 <p>From the package folder:</p>
-<div class="code"><pre>micromamba create -f environment.yml
+<div class="os-block" data-os="macos ubuntu"><div class="code"><pre>micromamba create -f environment.yml
 micromamba activate ros_env
-python --version
-rviz2
-rqt_graph</pre></div>
-<p>The first command downloads a few GB and can take a while. <code>python --version</code> should print 3.12, and an RViz window and an empty rqt_graph window should open; close them again. Activating <code>ros_env</code> also sets up ROS; no extra <code>source</code> of ROS itself is needed.</p>
+rviz2 &amp;&amp; rqt_graph</pre></div></div>
+<div class="os-block" data-os="windows"><div class="code"><pre>micromamba create -f environment.yml
+micromamba activate ros_env
+rviz2; rqt_graph</pre></div></div>
+<p>The first command downloads a few GB and can take a while. Then an RViz window opens; close it, and an empty rqt_graph window opens; close that too. Activating <code>ros_env</code> also sets up ROS; no extra <code>source</code> of ROS itself is needed.</p>
 <p>Install packages only with micromamba, not with pip, so that nothing replaces the versions the ROS packages were built against. The <a href="https://robostack.github.io/micromamba.html" target="_blank" rel="noopener">RoboStack guide</a> has more detail if a step fails.</p>
 <h3 class="step"><span class="n">4</span><span>Build the workspace</span></h3>
 <div class="os-block" data-os="windows"><p>First turn on <strong>Developer Mode</strong> in the Windows settings (System › For developers). It allows the symlinks that <code>--symlink-install</code> creates.</p></div>
@@ -359,7 +360,7 @@ cd src\melon_warpdrive</pre></div></div>
 <div class="table-wrap"><table><thead><tr><th>Interface</th><th>Type</th><th>Meaning</th></tr></thead><tbody><tr><td><code>/joint_states</code></td><td><code>sensor_msgs/msg/JointState</code></td><td><code>arm_joint</code>, <code>pendulum_joint</code>; position in rad, velocity in rad/s</td></tr><tr><td><code>/reactor/current_cmd</code></td><td><code>std_msgs/msg/Float64</code></td><td>motor current in A, <strong>not</strong> the normalised action</td></tr><tr><td><code>/reactor/reset</code></td><td><code>std_srvs/srv/Trigger</code></td><td>reset near the hanging-down position</td></tr></tbody></table></div>
 <p>To display the current ROS graph, run the following in another terminal, set up as in <a href="#setup">setup step 5</a>:</p>
 <div class="code"><pre>rqt_graph</pre></div>
-<p>The graph shows only the nodes that are currently running. With the simulator, robot_state_publisher and RViz launched (Task 1.3), it should look similar to the one below. The right-most node is RViz's transform listener, which receives the frames RViz displays.</p>
+<p>The graph shows only the nodes that are currently running. With the simulator, robot_state_publisher and RViz launched (Task 1.3), it should look similar to the one below. The right-most node is RViz's transform listener, which receives the frames RViz displays. <strong>Refresh the graph using the button in the top left corner.</strong></p>
 <figure><div class="plate wide dark"><img src="images/rqt_graph.png" alt="rqt_graph: /warpdrive_simulator publishes /joint_states to /robot_state_publisher, which publishes /tf and /tf_static to RViz's transform listener." width="2568" height="486"></div><figcaption>rqt_graph with the simulator, robot_state_publisher and RViz running.</figcaption></figure>
 <p>The simulator holds the last command for at most 100 ms; after that it applies zero current. Learning stays offline: the policy node only runs a trained network.</p>
 <article class="task" id="ros-node"><header><span class="id">Task 2.1</span><span>Policy node</span></header><div class="body"><p>Complete <code>warpdrive/policy_node.py</code>, following its TODOs, so that every incoming joint-state message produces a current command. Your node must:</p>
@@ -374,7 +375,7 @@ cd src\melon_warpdrive</pre></div></div>
 <p><em>Inspect the commands.</em> <code>ros2 topic echo</code> and <code>ros2 topic hz</code> keep running until you stop them with Ctrl+C, so run them one after the other in Terminal 3, or each in its own terminal:</p>
 <div class="code"><pre>ros2 topic echo /reactor/current_cmd</pre></div>
 <div class="code"><pre>ros2 topic hz /reactor/current_cmd</pre></div>
-<p>With all nodes running, start <code>rqt_graph</code> in another terminal and take a screenshot that clearly shows the nodes and their topics.</p>
+<p>With all nodes running, start <code>rqt_graph</code> in another terminal and take a screenshot that clearly shows the nodes and their topics. If the graph looks incomplete, refresh it.</p>
 <p>With the dummy policy the arm should turn steadily at about 1 rad/s; the pendulum is not swung up. If the arm stays still, your node is not publishing. Keep this setup: from now on you can watch every policy you train by pointing <code>model_file</code> and <code>parameters_file</code> at its run folder.</p></div></article>
 <p>With the launch file and your policy node running, <code>rqt_graph</code> should look similar to the one below. Compared with the graph from Task 1.3, your node <code>/warpdrive_policy</code> now subscribes to <code>/joint_states</code> and publishes <code>/reactor/current_cmd</code> back to the simulator, closing the loop.</p>
 <figure><div class="plate wide dark"><img src="images/rqt_graph2.png" alt="rqt_graph: /warpdrive_simulator publishes /joint_states to /robot_state_publisher and to /warpdrive_policy; /warpdrive_policy publishes /reactor/current_cmd back to the simulator; robot_state_publisher publishes /tf and /tf_static to RViz's transform listener." width="2568" height="486"></div><figcaption>rqt_graph with the simulator, robot_state_publisher, RViz and your policy node running.</figcaption></figure>
