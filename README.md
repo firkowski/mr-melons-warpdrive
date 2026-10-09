@@ -31,9 +31,10 @@ the simulator or the evaluator.
 ## 1. Setup
 
 On every operating system we use **ROS 2 Humble from RoboStack**, installed with micromamba into
-an environment called `ros_env`. RoboStack brings its own Python, so ROS, training and the policy
-node all use the same interpreter. Use a terminal (macOS, Ubuntu) or **PowerShell** (Windows)
-for every command.
+an environment called `ros_env`. The environment is defined in `environment.yml` and contains
+everything the assignment needs: ROS 2, Python 3.12, PyTorch (CPU), Stable-Baselines3, Gymnasium
+and matplotlib. ROS, training and the policy node all use the same interpreter. Use a terminal
+(macOS, Ubuntu) or **PowerShell** (Windows) for every command.
 
 ### 1.1 Install micromamba
 
@@ -54,26 +55,11 @@ Invoke-Expression ((Invoke-WebRequest -Uri https://micro.mamba.pm/install.ps1 -U
 Windows also needs **Visual Studio 2022 with C++ support** (“Desktop development with C++”).
 Close and reopen the terminal afterwards.
 
-### 1.2 Create the ROS 2 environment
-
-The same on all systems:
-
-```sh
-micromamba create -n ros_env -c conda-forge -c robostack-humble ros-humble-desktop
-micromamba activate ros_env
-micromamba config append channels robostack-humble --env
-micromamba install -c conda-forge ros-dev-tools git
-rviz2
-```
-
-If an RViz window opens, ROS works. Activating `ros_env` also sets up ROS; never source a
-system ROS installation on top of it. See the
-[RoboStack guide](https://robostack.github.io/micromamba.html) if something fails.
-
-### 1.3 Get the package and install the Python dependencies
+### 1.2 Get the package
 
 Go to the folder where you want to keep your work; the workspace is created there. Choose a path
-without spaces, and avoid folders synced by OneDrive or iCloud.
+without spaces, and avoid folders synced by OneDrive or iCloud. If `git` is not installed yet,
+download the repository as a ZIP from GitHub and unpack it to `reactor_ws/src/melon_warpdrive`.
 
 macOS and Ubuntu:
 
@@ -91,19 +77,25 @@ git clone https://github.com/firkowski/mr-melons-warpdrive.git melon_warpdrive
 cd melon_warpdrive
 ```
 
-Then, with `ros_env` active, install PyTorch (CPU) and the package’s dependencies:
+### 1.3 Create the environment
+
+From the package folder, the same on all systems:
 
 ```sh
-# macOS
-python -m pip install torch
-# Ubuntu and Windows
-python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
-
-# all systems
-python -m pip install -e ".[rl,plots]" "setuptools<80"
+micromamba create -f environment.yml
+micromamba activate ros_env
+python --version
+rviz2
+rqt_graph
 ```
 
-`setuptools<80` avoids a colcon error (`option --editable not recognized`).
+The first command downloads a few GB and can take a while. `python --version` should print 3.12;
+an RViz window and an empty rqt_graph window should open (close them again). Activating
+`ros_env` also sets up ROS; never source a system ROS installation on top of it.
+
+Install packages only with micromamba, not with pip, so that nothing replaces the versions the ROS
+packages were built against. See the
+[RoboStack guide](https://robostack.github.io/micromamba.html) if something fails.
 
 ### 1.4 Build the workspace
 
@@ -152,7 +144,9 @@ ros2 launch melon_warpdrive reactor.launch.py "parameters_file:=$PWD/runs/dummy/
 ```
 
 RViz should open and show the reactor with a glitched-out pendulum at the tip of the arm. The glitch
-is intended: you replace the mesh with your own model in Part 1. Stop the launch with Ctrl+C.
+is intended: you replace the mesh with your own model in Part 1. While the launch is running, run
+`rqt_graph` in a second terminal (set up as above); it should show the simulator and
+`robot_state_publisher`. Then stop the launch with Ctrl+C.
 
 ## 2. CAD values and visual model
 
@@ -281,7 +275,8 @@ python tools/plot_trace.py runs/zero_current/trajectory.csv --out runs/zero_curr
 | Policy node runs without errors, but `ros2 topic hz /reactor/current_cmd` shows nothing | The current message is built but never published. Check `PolicyNode.publish_current`. |
 | Simulator log: `Speed limit exceeded; paused` | The arm or pendulum spun too fast. Call `/reactor/reset`. |
 | RViz still shows the glitched placeholder pendulum | Your export is not at `urdf/model/pendulum.stl` or has a different file name. Save it there (in mm), rebuild and re-source. |
-| `colcon build`: `option --editable not recognized` | setuptools is too new for colcon: `python -m pip install "setuptools<80"`. |
+| `colcon build`: `option --editable not recognized` | setuptools is too new for colcon. Recreate `ros_env` from `environment.yml` (it pins `setuptools<80`), or run `micromamba install "setuptools<80"`. |
+| `rqt_graph`: `ImportError: cannot import name 'QtCriticalMsg' from 'PyQt6.QtCore'` | `ros_env` was created with Python 3.14, where RoboStack's rqt is broken. Remove it (`micromamba env remove -n ros_env`) and recreate it from `environment.yml`, which pins Python 3.12. Your workspace and code are unaffected; rebuild the workspace afterwards. |
 | Windows: `colcon build` fails creating symlinks | Turn on Developer Mode, or build without `--symlink-install` and rebuild after every edit. |
 | Windows: `setup.ps1 cannot be loaded because running scripts is disabled` | Run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once. |
 | Nodes do not see each other (`ros2 topic list` misses topics) | Allow network access when the firewall asks, or set `ROS_LOCALHOST_ONLY=1` in every terminal (`export ROS_LOCALHOST_ONLY=1`; PowerShell: `$env:ROS_LOCALHOST_ONLY=1`). |

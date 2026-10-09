@@ -1,4 +1,4 @@
-"""Plot the supplied evaluator's CSV. Optional install: pip install -e '.[plots]'."""
+"""Plot the supplied evaluator's CSV. Needs matplotlib, which environment.yml installs."""
 import argparse
 from pathlib import Path
 import numpy as np

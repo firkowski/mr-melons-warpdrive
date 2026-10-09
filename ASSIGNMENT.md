@@ -41,9 +41,10 @@ Everything else is supplied: the equations of motion, a Gymnasium environment, t
 
 ## Setup
 
-Follow `README.md` to install ROS 2 Humble with RoboStack (macOS, Windows or Ubuntu), build the
-workspace, set up each new terminal and check the installation. The assignment website shows the same steps with commands
-for each system.
+Follow `README.md` to create the `ros_env` environment from `environment.yml` (ROS 2 Humble from
+RoboStack plus the Python packages for training, on macOS, Windows or Ubuntu), build the
+workspace, set up each new terminal and check the installation. The assignment website shows the
+same steps with commands for each system.
 
 ## Part 1: Recover the missing pendulum (25 points)
 

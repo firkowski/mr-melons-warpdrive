@@ -1,0 +1,24 @@
+# Conda environment for the assignment: ROS 2 Humble (RoboStack) plus the
+# reinforcement-learning stack, all from conda-forge. Create it with
+#   micromamba create -f environment.yml
+#
+# Python is pinned to 3.12 because RoboStack's Humble builds for newer Python
+# versions ship a broken rqt (Qt6 bindings with PyQt5 code). Remove or raise
+# the pin once that is fixed upstream.
+name: ros_env
+channels:
+  - conda-forge
+  - robostack-humble
+dependencies:
+  - python=3.12
+  - ros-humble-desktop
+  - ros-dev-tools
+  - git
+  - pip
+  - setuptools<80              # newer setuptools breaks colcon --symlink-install
+  - pytorch=*=cpu*             # CPU build: smaller download, same on every OS
+  - stable-baselines3>=2.7,<3
+  - gymnasium>=1.2,<1.4
+  - matplotlib>=3.7,<4
+  - pyyaml>=6,<7
+  - numpy>=1.24,<3
